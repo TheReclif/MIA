@@ -12,25 +12,6 @@
 #include <thread>
 #include <fstream>
 
-static std::string readWholeFile(const std::string& filename)
-{
-	std::ifstream is;
-	is.open(filename);
-	if (!is.is_open())
-	{
-		return "";
-	}
-
-	is.seekg(0, std::ios::end);
-	const auto size = is.tellg();
-	is.seekg(0, std::ios::beg);
-
-	std::string result(size, '\0');
-	is.read(result.data(), size);
-	
-	return result;
-}
-
 void mia::App::threadFunc()
 {
 	const auto fileCount = filesToProcess.size();
@@ -58,10 +39,17 @@ void mia::App::threadFunc()
 
 	while (currentFile < fileCount)
 	{
-		const std::string fileContents = readWholeFile(filesToProcess[currentFile]);
-		// TODO
+		cppast::cpp_entity_index idx;
+		cppast::libclang_parser parser;
+		auto file = parser.parse(idx, filesToProcess[currentFile], compileConfig);
+		if (parser.error())
+		{
+			spdlog::error("Unable to parse {}", filesToProcess[currentFile]);
+			return;
+		}
 
-		
+		spdlog::info("{} parsed", filesToProcess[currentFile]);
+		// TODO: visit all of the properties and do... stuff
 
 		currentFile = currentProcessedFile++;
 	}

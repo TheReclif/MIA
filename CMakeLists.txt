@@ -5,7 +5,7 @@ project(MIA VERSION 0.0.1 LANGUAGES CXX)
 find_package(Argumentum CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
-add_executable(MIA MIA.CPP "include/App.hpp" "src/App.cpp")
+add_executable(MIA MIA.CPP)
 
 add_subdirectory(cppast)
 
