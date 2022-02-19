@@ -1,6 +1,6 @@
 #pragma once
 
-enum class ETest
+enum class [[generate::to_string]] ETest
 {
 	First = 1,
 	Second = 1 << 3,

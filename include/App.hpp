@@ -23,7 +23,7 @@ namespace mia
 			Cpp20
 		};
 	private:
-		const std::vector<std::string> filesToProcess;
+		const std::vector<std::string> filesToProcess, includeDirs;
 		const std::string pattern;
 		std::atomic<unsigned int> currentProcessedFile;
 		int threadCount = -1;
@@ -32,7 +32,7 @@ namespace mia
 		void threadFunc();
 	public:
 		App() = delete;
-		App(std::vector<std::string>&& files, std::string&& outputPattern, const int threads, const CppStandard standard);
+		App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const int threads, const CppStandard standard);
 		App(const App&) = delete;
 		App(App&&) noexcept = delete;
 

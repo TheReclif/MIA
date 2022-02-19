@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	else CHECK("c++20", mia::App::CppStandard::Cpp20)
 	else return 1;
 #undef CHECK
-	mia::App app(std::move(filesToProcess), std::move(outputPattern), threadCount, cppStandard);
+	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), threadCount, cppStandard);
 	app.process();
 
 	return 0;
