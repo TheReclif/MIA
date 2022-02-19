@@ -36,19 +36,39 @@ void mia::App::threadFunc()
 	const auto fileCount = filesToProcess.size();
 	unsigned int currentFile = currentProcessedFile++;
 
+	cppast::libclang_compile_config compileConfig;
+	cppast::cpp_standard compileStandard;
+	cppast::compile_flags flags;
+#define CHECK(a, b) case a: compileStandard = b; break;
+	switch (cppStandard)
+	{
+		CHECK(CppStandard::Cpp98, cppast::cpp_standard::cpp_98);
+		CHECK(CppStandard::Cpp03, cppast::cpp_standard::cpp_03);
+		CHECK(CppStandard::Cpp11, cppast::cpp_standard::cpp_11);
+		CHECK(CppStandard::Cpp14, cppast::cpp_standard::cpp_14);
+		CHECK(CppStandard::Cpp1z, cppast::cpp_standard::cpp_1z);
+		CHECK(CppStandard::Cpp17, cppast::cpp_standard::cpp_17);
+		CHECK(CppStandard::Cpp2a, cppast::cpp_standard::cpp_2a);
+		CHECK(CppStandard::Cpp20, cppast::cpp_standard::cpp_20);
+	default:
+		return;
+	}
+#undef CHECK
+	compileConfig.set_flags(compileStandard, flags);
+
 	while (currentFile < fileCount)
 	{
 		const std::string fileContents = readWholeFile(filesToProcess[currentFile]);
 		// TODO
 
-		spdlog::info("{}: {} bytes", filesToProcess[currentFile], fileContents.size());
+		
 
 		currentFile = currentProcessedFile++;
 	}
 }
 
-mia::App::App(std::vector<std::string>&& files, std::string&& outputPattern, const int threads)
-	: filesToProcess(std::move(files)), pattern(std::move(outputPattern)), threadCount(threads)
+mia::App::App(std::vector<std::string>&& files, std::string&& outputPattern, const int threads, const CppStandard standard)
+	: filesToProcess(std::move(files)), pattern(std::move(outputPattern)), threadCount(threads), cppStandard(standard)
 {}
 
 void mia::App::process()
