@@ -41,6 +41,7 @@ void mia::App::threadFunc()
 	{
 		cppast::cpp_entity_index idx;
 		cppast::libclang_parser parser;
+		
 		auto file = parser.parse(idx, filesToProcess[currentFile], compileConfig);
 		if (parser.error())
 		{

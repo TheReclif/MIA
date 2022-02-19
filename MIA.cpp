@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 	params.add_parameter(filesToProcess, "files").minargs(1).metavar("FILES").help("Files to process");
 	params.add_parameter(outputPattern, "--output", "-o").metavar("OUTPUT_PATTERN").help("Output pattern for the output files. Defaults to \"{}.hpp\" where {} is a placeholder for the input file name").required(false).absent("{}.hpp").nargs(1);
 	params.add_parameter(threadCount, "--threads", "-t").metavar("THREADS").help("How many threads to start").required(false).absent(-1).nargs(1);
-	params.add_parameter(standard, "--std").metavar("STD").help("C++ standard to compile against").required(false).absent("c++17").nargs(1);
+	params.add_parameter(standard, "--std").metavar("STD").help("C++ standard to compile against").required(false).absent("c++17").nargs(1).choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" });
 
 	auto res = parser.parse_args(argc, argv);
 	if (!res)
