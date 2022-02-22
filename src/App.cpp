@@ -57,22 +57,64 @@ void mia::App::threadFunc()
 
 		spdlog::info("{} parsed", filesToProcess[currentFile]);
 		// TODO: visit all of the properties and generate meta information
-		cppast::visit(*file, [](const cppast::cpp_entity& e, cppast::cpp_access_specifier_kind spec) -> bool
-		{
-			return true;
-		},
+		cppast::visit(*file, cppast::whitelist<cppast::cpp_entity_kind::enum_t, cppast::cpp_entity_kind::namespace_t>(),
 		[this](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
 		{
-			if (e.kind() == cppast::cpp_entity_kind::file_t)
+			thread_local std::vector<std::string> namespaceStack;
+			if (e.kind() == cppast::cpp_entity_kind::namespace_t)
 			{
+				if (info.event == cppast::visitor_info::container_entity_enter)
+				{
+					namespaceStack.push_back(e.name());
+				}
+				else
+				{
+					namespaceStack.pop_back();
+				}
+
 				return true;
 			}
-			if (info.is_old_entity() || info.event == info.leaf_entity)
+
+			if (info.is_old_entity() || !(cppast::has_attribute(e, "mia_gen::enum_string")))
 			{
 				return true;
 			}
 
-			std::cout << CodeGenerator(e).code();
+			const auto& eEnum = static_cast<const cppast::cpp_enum&>(e);
+			if (eEnum.is_declaration())
+			{
+				return true;
+			}
+
+			std::string eName;
+			for (const auto& x : namespaceStack)
+			{
+				eName += x;
+				eName += "::";
+			}
+			eName += eEnum.name();
+			std::string result = fmt::format(
+				"inline const char* to_string(const {} e) {}",
+				eName,
+				"{\n"
+				"\tswitch(e) {\n"
+			);
+			for (const auto& x : eEnum)
+			{
+				std::string valName;
+				if (auto attr = cppast::has_attribute(x, "mia_gen::enum_val_name"))
+				{
+					valName = attr.value().arguments().value().as_string();
+				}
+				else
+				{
+					valName = "\"" + x.name() + "\"";
+				}
+
+				result += fmt::format("\tcase {}::{}: return {};\n", eName, x.name(), valName);
+			}
+			result += "\t}\n}\n";
+			std::cout << result;
 
 			return true;
 		});

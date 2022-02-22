@@ -1,8 +1,11 @@
 #pragma once
 
-enum class [[generate::to_string]] ETest
+namespace GLOWE
 {
-	First = 1,
-	Second = 1 << 3,
-	Last = 4000
-};
+	enum class [[mia_gen::enum_string]] ETest
+	{
+		Default,
+		UInt16 [[mia_gen::enum_val_name("Unsigned short")]],
+		UInt32 [[mia_gen::enum_val_name("Unsigned int")]]
+	};
+}
