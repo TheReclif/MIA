@@ -4,35 +4,26 @@
 
 #include <vector>
 #include <string>
+#include <string_view>
+#include <optional>
 #include <atomic>
+
+#include <Standard.hpp>
 
 namespace mia
 {
+	struct AppConfig
+	{
+		int threadCount = -1;
+		CppStandard cppStandard = CppStandard::Cpp11;
+		bool dry = false;
+	};
+
 	class App
 	{
 	public:
-		enum class CppStandard
-		{
-			Cpp98,
-			Cpp03,
-			Cpp11,
-			Cpp14,
-			Cpp1z,
-			Cpp17,
-			Cpp2a,
-			Cpp20
-		};
-	private:
-		const std::vector<std::string> filesToProcess, includeDirs;
-		const std::string pattern;
-		std::atomic<unsigned int> currentProcessedFile;
-		int threadCount = -1;
-		CppStandard cppStandard;
-	private:
-		void threadFunc();
-	public:
 		App() = delete;
-		App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const int threads, const CppStandard standard);
+		App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const AppConfig& config);
 		App(const App&) = delete;
 		App(App&&) noexcept = delete;
 
@@ -42,6 +33,15 @@ namespace mia
 		App& operator=(App&&) noexcept = delete;
 
 		void process();
+
+	private:
+		std::optional<std::string_view> getNextFileToProcess();
+		void threadFunc();
+
+		const std::vector<std::string> filesToProcess, includeDirs;
+		const std::string pattern;
+		std::atomic<unsigned int> currentProcessedFile;
+		AppConfig config;
 	};
 }
 
