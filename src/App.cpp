@@ -87,8 +87,6 @@ namespace mia
 		Generator generator { config, includeDirs };
 		generator.registerModules(modules);
 
-		const auto fileCount = filesToProcess.size();
-
 		while (auto currentFile = getNextFileToProcess())
 		{
 			const auto filePath = static_cast<std::string>(currentFile.value());
