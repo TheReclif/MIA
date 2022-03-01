@@ -9,24 +9,15 @@
 #include <atomic>
 #include <argumentum/argparse.h>
 
-#include <Standard_Gen.hpp>
+#include <Generator.hpp>
 
 namespace mia
 {
-	struct AppConfig
-	{
-		int threadCount = -1;
-		CppStandard cppStandard = CppStandard::Cpp11;
-		bool dry = false;
-
-		void registerOptions(argumentum::ParameterConfig& params);
-	};
-
 	class App
 	{
 	public:
 		App() = delete;
-		App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const AppConfig& config);
+		App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const mia::GeneratorConfig& config);
 		App(const App&) = delete;
 		App(App&&) noexcept = delete;
 
@@ -36,7 +27,8 @@ namespace mia
 		App& operator=(App&&) noexcept = delete;
 
 		void process();
-
+		void registerModule(const GeneratorModule::Ptr& module);
+		void registerModules(const std::vector<GeneratorModule::Ptr>& modules);
 	private:
 		std::optional<std::string_view> getNextFileToProcess();
 		void threadFunc();
@@ -44,7 +36,8 @@ namespace mia
 		const std::vector<std::string> filesToProcess, includeDirs;
 		const std::string pattern;
 		std::atomic<unsigned int> currentProcessedFile;
-		AppConfig config;
+		GeneratorConfig config;
+		std::vector<std::shared_ptr<GeneratorModule>> modules;
 	};
 }
 
