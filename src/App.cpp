@@ -10,6 +10,7 @@
 #include <cppast/visitor.hpp>         // for visit()
 #include <cppast/cpp_enum.hpp> // cpp_enum
 
+#include <deque>
 #include <thread>
 #include <fstream>
 #include <iostream>
@@ -20,7 +21,7 @@
 
 namespace mia
 {
-	std::optional<cppast::cpp_standard> convertStandard(CppStandard standard)
+	static std::optional<cppast::cpp_standard> convertStandard(CppStandard standard)
 	{
 		static const std::unordered_map<CppStandard, cppast::cpp_standard> standardMapping = {
 			{ CppStandard::Cpp98, cppast::cpp_standard::cpp_98 },
@@ -40,7 +41,7 @@ namespace mia
 		return it->second;
 	}
 
-	void initCompileConfig(cppast::libclang_compile_config& compileConfig, const AppConfig& appConfig, const std::vector<std::string>& includeDirs)
+	static void initCompileConfig(cppast::libclang_compile_config& compileConfig, const AppConfig& appConfig, const std::vector<std::string>& includeDirs)
 	{
 		const auto compileStandard = convertStandard(appConfig.cppStandard);
 		if (!compileStandard)
@@ -101,10 +102,8 @@ namespace mia
 		initCompileConfig(compileConfig, config, includeDirs);
 
 		cppast::libclang_parser parser;
-
-		decltype(getNextFileToProcess()) currentFile;
-
-		while (currentFile = getNextFileToProcess())
+		
+		while (auto currentFile = getNextFileToProcess())
 		{
 			cppast::cpp_entity_index idx;
 
@@ -116,29 +115,14 @@ namespace mia
 				if (parser.error())
 				{
 					spdlog::error("Unable to parse {}", fileName);
-					return;
+					continue;
 				}
 
 				spdlog::info("{} parsed", fileName);
 				// TODO: visit all of the properties and generate meta information
-				cppast::visit(*file, cppast::whitelist<cppast::cpp_entity_kind::enum_t, cppast::cpp_entity_kind::namespace_t>(),
+				cppast::visit(*file, cppast::whitelist<cppast::cpp_entity_kind::enum_t>(),
 					[this](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
 					{
-						thread_local std::vector<std::string> namespaceStack;
-						if (e.kind() == cppast::cpp_entity_kind::namespace_t)
-						{
-							if (info.event == cppast::visitor_info::container_entity_enter)
-							{
-								namespaceStack.push_back(e.name());
-							}
-							else
-							{
-								namespaceStack.pop_back();
-							}
-
-							return true;
-						}
-
 						if (info.is_old_entity() || !(cppast::has_attribute(e, "mia_gen::enum_string")))
 						{
 							return true;
@@ -150,12 +134,29 @@ namespace mia
 							return true;
 						}
 
-						const auto nsName = text::implode(namespaceStack, "::");
+						std::deque<std::string> namespaces;
+						std::string nsName;
+						auto par = e.parent();
+						while (par)
+						{
+							if (par.value().kind() == cppast::cpp_entity_kind::file_t)
+							{
+								break;
+							}
+							const auto& val = par.value();
+							namespaces.push_front(val.name() + "::");
+							par = val.parent();
+						}
 
-						std::string eName = eEnum.name();
-						if (!nsName.empty())
-							eName = nsName + "::" + eName;
+						if (!namespaces.empty())
+						{
+							for (const auto& x : namespaces)
+							{
+								nsName += x;
+							}
+						}
 
+						const std::string eName = nsName + eEnum.name();
 						std::string result = fmt::format(
 							"inline const char* to_string(const {} e) {}",
 							eName,
