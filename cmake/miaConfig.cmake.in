@@ -1,0 +1,26 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/miaTargets.cmake")
+check_required_components("@PROJECT_NAME@")
+
+set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
+
+function(miagen target)
+	get_target_property(mia_fetched_sources ${target} SOURCES)
+	get_target_property(mia_fetched_sources_dir ${target} SOURCE_DIR)
+	list(FILTER mia_fetched_sources INCLUDE REGEX "\\.(hpp|h|hxx)$")
+	foreach(mia_header_file IN LISTS mia_fetched_sources)
+		get_filename_component(mia_file_name ${mia_header_file} NAME_WE)
+		set(mia_input_file "${mia_fetched_sources_dir}/${mia_header_file}")
+		set(mia_output_file "${CMAKE_CURRENT_BINARY_DIR}/${mia_file_name}.mia.hpp")
+		
+		set(mia_command_bundle "${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}")
+		
+		add_custom_command(OUTPUT ${mia_output_file}
+			COMMAND ${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}
+			DEPENDS ${mia_input_file}
+		)
+		add_dependencies(${target} ${mia_output_file})
+	endforeach()
+	target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+endfunction()

@@ -1,6 +1,6 @@
 #pragma once
 
-enum class [[mia_gen::enum_string]] Result
+enum class [[mia::include]] Result
 {
 	Ok
 };

@@ -107,7 +107,7 @@ namespace mia
 			std::ostream& outStream = outFile ? outFile.value() : std::cout;
 
 			if (!config.dry)
-				outStream << fmt::format(header_start_pattern, text::toUpper(fileStem), fileStem);
+				outStream << fmt::format(header_start_pattern, text::toUpper(fileStem), fileName);
 
 			generator.generate(outStream, filePath);
 
