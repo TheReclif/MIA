@@ -6,7 +6,8 @@ find_package(Argumentum CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 
-add_library(utils INTERFACE include/MiaUtils.hpp)
+add_library(utils INTERFACE)
+target_sources(utils INTERFACE include/MiaUtils.hpp)
 target_include_directories(utils INTERFACE include)
 
 add_executable(mia Mia.cpp)
