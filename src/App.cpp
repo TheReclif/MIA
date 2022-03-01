@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <optional>
 #include <filesystem>
 
@@ -54,6 +55,29 @@ namespace mia
 		{
 			compileConfig.add_include_dir(x);
 		}
+	}
+
+	void AppConfig::registerOptions(argumentum::ParameterConfig& params)
+	{
+		params
+			.add_parameter(threadCount, "--threads", "-t")
+			.metavar("<threads>")
+			.help("How many threads to start")
+			.required(false).absent(-1).nargs(1);
+		params
+			.add_parameter(cppStandard, "--std")
+			.metavar("<std>")
+			.help("C++ standard to compile against")
+			.required(false).absent(CppStandard::Cpp11).nargs(1)
+			.choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" })
+			.action([](auto& target, const std::string& value) 
+				{
+					target = to_enum<CppStandard>(value);
+				});
+		params
+			.add_parameter(dry, "--dry-run", "-d")
+			.help("Program in dry run will not modify any file and only print information about what it would do.")
+			.required(false).absent(false);
 	}
 
 	mia::App::App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const AppConfig& config)

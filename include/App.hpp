@@ -7,6 +7,7 @@
 #include <string_view>
 #include <optional>
 #include <atomic>
+#include <argumentum/argparse.h>
 
 #include <Standard_Gen.hpp>
 
@@ -17,6 +18,8 @@ namespace mia
 		int threadCount = -1;
 		CppStandard cppStandard = CppStandard::Cpp11;
 		bool dry = false;
+
+		void registerOptions(argumentum::ParameterConfig& params);
 	};
 
 	class App
