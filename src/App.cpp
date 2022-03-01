@@ -10,6 +10,7 @@
 #include <cppast/visitor.hpp>         // for visit()
 #include <cppast/cpp_enum.hpp> // cpp_enum
 
+#include <deque>
 #include <thread>
 #include <fstream>
 #include <iostream>
@@ -88,9 +89,7 @@ namespace mia
 
 		const auto fileCount = filesToProcess.size();
 
-		decltype(getNextFileToProcess()) currentFile;
-
-		while (currentFile = getNextFileToProcess())
+		while (auto currentFile = getNextFileToProcess())
 		{
 			const auto filePath = static_cast<std::string>(currentFile.value());
 			
@@ -110,7 +109,6 @@ namespace mia
 				outStream << fmt::format(header_start_pattern, text::toUpper(fileStem), fileName);
 
 			generator.generate(outStream, filePath);
-
 
 			if (!config.dry)
 				outStream << header_end;
