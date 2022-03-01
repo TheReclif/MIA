@@ -3,11 +3,12 @@ set(mia_executable_path "@mia_executable_path@")
 function(miagen target)
 get_target_property(mia_target_fetched_sources ${target} SOURCES)
 list(FILTER mia_target_fetched_sources INCLUDE REGEX "\\.(hpp|h|hxx)$")
+message("${target}")
 foreach(mia_target_file IN LISTS mia_target_fetched_sources)
 	get_filename_component(file_name ${mia_target_file} NAME_WE)
 	set(output_file "${CMAKE_CURRENT_BINARY_DIR}/${file_name}.mia.hpp")
 	add_custom_command(OUTPUT ${output_file}
-		COMMAND "${mia_executable_path}" "-f ${mia_target_file} -o ${output_file}"
+		COMMAND "${mia_executable_path} -f ${mia_target_file} -o ${output_file}"
 		DEPENDS ${mia_target_file}
 	)
 endforeach()

@@ -18,21 +18,16 @@ namespace mia::text
 
 		return ret;
 	}
+
 	std::string pad(const std::string& str, int count, char delim)
 	{
 		return std::string(count, delim) + str;
 	}
-	std::vector<std::string> process(const std::vector<std::string>& array, const std::function<std::string(const std::string&)>& processor)
+
+	std::string toUpper(const std::string& str)
 	{
-		std::vector<std::string> ret;
-
-		ret.reserve(array.size());
-
-		for (const auto& s : array)
-		{
-			ret.emplace_back(processor(s));
-		}
-
+		std::string ret{ str };
+		std::transform(ret.begin(), ret.end(), ret.begin(), std::toupper);
 		return ret;
- 	}
+	}
 }

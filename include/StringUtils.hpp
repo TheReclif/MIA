@@ -13,7 +13,21 @@ namespace mia::text
 
 	std::string pad(const std::string& str, int count, char delim);
 
-	std::vector<std::string> process(const std::vector<std::string>& array, const std::function<std::string(const std::string&)>& processor);
+	std::string toUpper(const std::string& str);
+
+	template<typename T> std::vector<std::string> process(const std::vector<T>& array, const std::function<std::string(const T&)>& processor)
+	{
+		std::vector<std::string> ret;
+
+		ret.reserve(array.size());
+
+		for (const auto& s : array)
+		{
+			ret.emplace_back(processor(s));
+		}
+
+		return ret;
+	}
 }
 
 #endif

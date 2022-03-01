@@ -4,16 +4,16 @@
 
 namespace mia
 {
-	enum class [[mia_gen::enum_string]] CppStandard
+	enum class [[mia::include]] CppStandard
 	{
-		Cpp98 [[mia_gen::enum_val_name("c++98")]],
-		Cpp03 [[mia_gen::enum_val_name("c++03")]],
-		Cpp11 [[mia_gen::enum_val_name("c++11")]],
-		Cpp14 [[mia_gen::enum_val_name("c++14")]],
-		Cpp1z [[mia_gen::enum_val_name("c++1z")]],
-		Cpp17 [[mia_gen::enum_val_name("c++17")]],
-		Cpp2a [[mia_gen::enum_val_name("c++2a")]],
-		Cpp20 [[mia_gen::enum_val_name("c++20")]]
+		Cpp98 [[mia::name("c++98")]],
+		Cpp03 [[mia::name("c++03")]],
+		Cpp11 [[mia::name("c++11")]],
+		Cpp14 [[mia::name("c++14")]],
+		Cpp1z [[mia::name("c++1z")]],
+		Cpp17 [[mia::name("c++17")]],
+		Cpp2a [[mia::name("c++2a")]],
+		Cpp20 [[mia::name("c++20")]]
 	};
 }
 

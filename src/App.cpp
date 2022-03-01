@@ -15,6 +15,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <optional>
+#include <filesystem>
 
 #include <StringUtils.hpp>
 
@@ -104,25 +105,73 @@ namespace mia
 
 		decltype(getNextFileToProcess()) currentFile;
 
+		static const auto to_string_main_pattern = R"TXT(
+inline const char* to_string(const {} e) {{
+	switch (e) {{
+{}
+	}}
+}}
+)TXT";
+		static const auto to_string_item_pattern = "\t\tcase {}: return {};";
+
+		static const auto to_enum_main_pattern = R"TXT(
+template<> inline {0} to_enum(const std::string& str) {{
+	static const std::unordered_map<std::string, {0}> mapping = {{
+{1}
+	}};
+	const auto it = mapping.find(str);
+	if (it == mapping.end())
+		throw std::invalid_argument("Cannot convert given string to enum.");
+	return it->second;
+}};
+)TXT";
+
+		static const auto to_enum_item_pattern = "\t\t{{ {}, {} }}";
+
+		static const auto header_start_pattern = R"(
+#pragma once
+#ifndef {0}_INCLUDED
+#define {0}_INCLUDED
+
+#include <MiaUtils.hpp>
+#include <{1}>
+)";
+		static const auto header_end = "#endif";
+
 		while (currentFile = getNextFileToProcess())
 		{
 			cppast::cpp_entity_index idx;
 
-			const auto fileName = static_cast<std::string>(currentFile.value());
+			const auto filePath = static_cast<std::string>(currentFile.value());
 
 			try
 			{
-				auto file = parser.parse(idx, fileName, compileConfig);
+				auto file = parser.parse(idx, filePath, compileConfig);
 				if (parser.error())
 				{
-					spdlog::error("Unable to parse {}", fileName);
+					spdlog::error("Unable to parse {}", filePath);
 					return;
 				}
 
-				spdlog::info("{} parsed", fileName);
-				// TODO: visit all of the properties and generate meta information
+				spdlog::info("{} parsed", filePath);
+				
+				std::optional<std::ofstream> outFile;
+
+				const auto path = std::filesystem::path(filePath);
+
+				const auto fileStem = path.stem().string();
+				const auto fileName = path.filename().string();
+
+				if (!config.dry)
+					outFile = std::ofstream(fmt::format(pattern, fileStem));
+
+				std::ostream& outStream = outFile ? outFile.value() : std::cout;
+
+				if (outFile)
+					outStream << fmt::format(header_start_pattern, text::toUpper(fileStem), fileName) << "\n";
+
 				cppast::visit(*file, cppast::whitelist<cppast::cpp_entity_kind::enum_t, cppast::cpp_entity_kind::namespace_t>(),
-					[this](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
+					[this, &outStream](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
 					{
 						thread_local std::vector<std::string> namespaceStack;
 						if (e.kind() == cppast::cpp_entity_kind::namespace_t)
@@ -139,7 +188,7 @@ namespace mia
 							return true;
 						}
 
-						if (info.is_old_entity() || !(cppast::has_attribute(e, "mia_gen::enum_string")))
+						if (info.is_old_entity() || !(cppast::has_attribute(e, "mia::include")))
 						{
 							return true;
 						}
@@ -156,16 +205,13 @@ namespace mia
 						if (!nsName.empty())
 							eName = nsName + "::" + eName;
 
-						std::string result = fmt::format(
-							"inline const char* to_string(const {} e) {}",
-							eName,
-							"{\n"
-							"\tswitch(e) {\n"
-						);
+						using EnumOption = std::pair<std::string, std::string>;
+
+						std::vector<EnumOption> enumOptions;
 						for (const auto& x : eEnum)
 						{
 							std::string valName;
-							if (auto attr = cppast::has_attribute(x, "mia_gen::enum_val_name"))
+							if (auto attr = cppast::has_attribute(x, "mia::name"))
 							{
 								valName = attr.value().arguments().value().as_string();
 							}
@@ -173,53 +219,34 @@ namespace mia
 							{
 								valName = "\"" + x.name() + "\"";
 							}
-
-							result += fmt::format("\tcase {}::{}: return {};\n", eName, x.name(), valName);
+							enumOptions.emplace_back(eName+"::"+x.name(), valName);
 						}
-						result += "\t}\n}\n";
-						std::cout << result;
-
-						std::string innerBody = fmt::format(
-							"\tstatic const std::unordered_map<std::string, {}> mapping = {}",
+						outStream << fmt::format(
+							to_string_main_pattern,
 							eName,
-							"{\n"
-						);
-						bool first = true;
-						for (const auto& x : eEnum)
-						{
-							std::string valName;
-							if (auto attr = cppast::has_attribute(x, "mia_gen::enum_val_name"))
-							{
-								valName = attr.value().arguments().value().as_string();
-							}
-							else
-							{
-								valName = "\"" + x.name() + "\"";
-							}
-							if (!first)
-								innerBody += ",\n";
-							innerBody += "\t\t{ " + fmt::format("{}, {}::{}", valName, eName, x.name()) + " }";
-							first = false;
-						}
-						innerBody += "\n\t};\n";
-						innerBody += text::implode(text::process({
-								"const auto it = mapping.find(str);",
-								"if (it == mapping.end())",
-								"\tthrow std::invalid_argument(\"Cannot convert given string to enum.\");",
-								"return it->second;"
-							}, [](const auto& str) { return text::pad(str, 1, '\t'); }), "\n"
+							text::implode(text::process<EnumOption>(
+								enumOptions,
+								[](const EnumOption& option) {
+									return fmt::format(to_string_item_pattern, option.first, option.second);
+								}
+							), "\n")
 						);
 
-						result = fmt::format(
-							"template<> {} to_enum(const std::string& str) {}",
+						outStream << fmt::format(
+							to_enum_main_pattern,
 							eName,
-							"{\n" + innerBody + "\n};"
+							text::implode(text::process<EnumOption>(
+								enumOptions,
+								[](const EnumOption& option) {
+									return fmt::format(to_enum_item_pattern, option.second, option.first);
+								}
+							), ",\n")
 						);
-
-						std::cout << result;
 
 						return true;
 					});
+				if (outFile)
+					outStream << header_end;
 			}
 			catch (std::exception e)
 			{

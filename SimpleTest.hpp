@@ -2,10 +2,10 @@
 
 namespace GLOWE
 {
-	enum class [[mia_gen::enum_string]] ETest
+	enum class [[mia::include]] ETest
 	{
 		Default,
-		UInt16 [[mia_gen::enum_val_name("Unsigned short")]],
-		UInt32 [[mia_gen::enum_val_name("Unsigned int")]]
+		UInt16 [[mia::name("Unsigned short")]],
+		UInt32 [[mia::name("Unsigned int")]]
 	};
 }

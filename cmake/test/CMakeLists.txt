@@ -12,4 +12,4 @@ PRIVATE
 	defs.hpp
 )
 
-miagen(test)
+miagen("test")
