@@ -20,7 +20,10 @@ function(miagen target)
 			COMMAND ${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}
 			DEPENDS ${mia_input_file}
 		)
-		add_dependencies(${target} ${mia_output_file})
+		
+		set(mia_output_file_target "mia_output_header_${target}_${mia_file_name}")
+		add_custom_target(${mia_output_file_target} ALL DEPENDS ${mia_output_file})
+		add_dependencies(${target} ${mia_output_file_target})
 	endforeach()
 	target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 endfunction()
