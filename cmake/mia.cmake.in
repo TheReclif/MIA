@@ -1,0 +1,12 @@
+set(mia_executable_path "@mia_executable_path@")
+
+function(miagen target)
+get_target_property(mia_target_fetched_sources ${target} SOURCES)
+list(FILTER mia_target_fetched_sources INCLUDE REGEX "\\.(hpp|h|hxx)$")
+message("${mia_target_fetched_sources}")
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/MiaGenerated.hpp
+	COMMAND "${mia_executable_path}" "-f ${mia_target_fetched_sources}" 
+)
+
+target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+endfunction()

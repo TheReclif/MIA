@@ -21,3 +21,11 @@ target_include_directories(mia PRIVATE include)
 
 add_subdirectory(src)
 add_subdirectory(include)
+
+set(mia_executable_path "$<TARGET_FILE:mia>")
+
+configure_file(
+	"${PROJECT_SOURCE_DIR}/cmake/mia.cmake.in"
+    "${PROJECT_BINARY_DIR}/cmake/mia.cmake"
+	@ONLY
+)
