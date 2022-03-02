@@ -15,48 +15,15 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <optional>
+#include <filesystem>
 
 #include <StringUtils.hpp>
 
 namespace mia
 {
-	static std::optional<cppast::cpp_standard> convertStandard(CppStandard standard)
-	{
-		static const std::unordered_map<CppStandard, cppast::cpp_standard> standardMapping = {
-			{ CppStandard::Cpp98, cppast::cpp_standard::cpp_98 },
-			{ CppStandard::Cpp03, cppast::cpp_standard::cpp_03 },
-			{ CppStandard::Cpp11, cppast::cpp_standard::cpp_11 },
-			{ CppStandard::Cpp14, cppast::cpp_standard::cpp_14 },
-			{ CppStandard::Cpp1z, cppast::cpp_standard::cpp_1z },
-			{ CppStandard::Cpp17, cppast::cpp_standard::cpp_17 },
-			{ CppStandard::Cpp2a, cppast::cpp_standard::cpp_2a },
-			{ CppStandard::Cpp20, cppast::cpp_standard::cpp_20 },
-		};
-
-		auto it = standardMapping.find(standard);
-		if (it == standardMapping.end())
-			return {};
-
-		return it->second;
-	}
-
-	static void initCompileConfig(cppast::libclang_compile_config& compileConfig, const AppConfig& appConfig, const std::vector<std::string>& includeDirs)
-	{
-		const auto compileStandard = convertStandard(appConfig.cppStandard);
-		if (!compileStandard)
-			throw std::logic_error("Incorrect state, invalid cpp version should be thrown earlier!");
-		
-		cppast::compile_flags flags;
-
-		compileConfig.set_flags(compileStandard.value(), flags);
-		for (const auto& x : includeDirs)
-		{
-			compileConfig.add_include_dir(x);
-		}
-	}
-
-	mia::App::App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const AppConfig& config)
+	mia::App::App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const GeneratorConfig& config)
 		: filesToProcess(std::move(files)), includeDirs(std::move(includes)), pattern(std::move(outputPattern)), config(config)
 	{}
 
@@ -84,6 +51,18 @@ namespace mia
 		}
 	}
 
+	void App::registerModule(const GeneratorModule::Ptr& module)
+	{
+		modules.emplace_back(module);
+	}
+
+	void App::registerModules(const std::vector<GeneratorModule::Ptr>& modules)
+	{
+		this->modules.reserve(this->modules.size() + modules.size());
+		for (auto& module : modules)
+			this->modules.emplace_back(module);
+	}
+
 	std::optional<std::string_view> App::getNextFileToProcess()
 	{
 		unsigned int currentFile = currentProcessedFile++;
@@ -95,138 +74,42 @@ namespace mia
 
 	void mia::App::threadFunc()
 	{
-		const auto fileCount = filesToProcess.size();
+		static const auto header_start_pattern = R"(
+#pragma once
+#ifndef {0}_INCLUDED
+#define {0}_INCLUDED
 
-		cppast::libclang_compile_config compileConfig;
+#include <MiaUtils.hpp>
+#include <{1}>
+)";
+		static const auto header_end = "#endif";
 
-		initCompileConfig(compileConfig, config, includeDirs);
+		Generator generator { config, includeDirs };
+		generator.registerModules(modules);
 
-		cppast::libclang_parser parser;
-		
 		while (auto currentFile = getNextFileToProcess())
 		{
-			cppast::cpp_entity_index idx;
+			const auto filePath = static_cast<std::string>(currentFile.value());
+			
+			std::optional<std::ofstream> outFile;
 
-			const auto fileName = static_cast<std::string>(currentFile.value());
+			const auto path = std::filesystem::path(filePath);
 
-			try
-			{
-				auto file = parser.parse(idx, fileName, compileConfig);
-				if (parser.error())
-				{
-					spdlog::error("Unable to parse {}", fileName);
-					continue;
-				}
+			const auto fileStem = path.stem().string();
+			const auto fileName = path.filename().string();
 
-				spdlog::info("{} parsed", fileName);
-				// TODO: visit all of the properties and generate meta information
-				cppast::visit(*file, cppast::whitelist<cppast::cpp_entity_kind::enum_t>(),
-					[this](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
-					{
-						if (info.is_old_entity() || !(cppast::has_attribute(e, "mia_gen::enum_string")))
-						{
-							return true;
-						}
+			if (!config.dry)
+				outFile = std::ofstream(fmt::format(pattern, fileStem));
 
-						const auto& eEnum = static_cast<const cppast::cpp_enum&>(e);
-						if (eEnum.is_declaration())
-						{
-							return true;
-						}
+			std::ostream& outStream = outFile ? outFile.value() : std::cout;
 
-						std::deque<std::string> namespaces;
-						std::string nsName;
-						auto par = e.parent();
-						while (par)
-						{
-							if (par.value().kind() == cppast::cpp_entity_kind::file_t)
-							{
-								break;
-							}
-							const auto& val = par.value();
-							namespaces.push_front(val.name() + "::");
-							par = val.parent();
-						}
+			if (!config.dry)
+				outStream << fmt::format(header_start_pattern, text::toUpper(fileStem), fileName);
 
-						if (!namespaces.empty())
-						{
-							for (const auto& x : namespaces)
-							{
-								nsName += x;
-							}
-						}
+			generator.generate(outStream, filePath);
 
-						const std::string eName = nsName + eEnum.name();
-						std::string result = fmt::format(
-							"inline const char* to_string(const {} e) {}",
-							eName,
-							"{\n"
-							"\tswitch(e) {\n"
-						);
-						for (const auto& x : eEnum)
-						{
-							std::string valName;
-							if (auto attr = cppast::has_attribute(x, "mia_gen::enum_val_name"))
-							{
-								valName = attr.value().arguments().value().as_string();
-							}
-							else
-							{
-								valName = "\"" + x.name() + "\"";
-							}
-
-							result += fmt::format("\tcase {}::{}: return {};\n", eName, x.name(), valName);
-						}
-						result += "\t}\n}\n";
-						std::cout << result;
-
-						std::string innerBody = fmt::format(
-							"\tstatic const std::unordered_map<std::string, {}> mapping = {}",
-							eName,
-							"{\n"
-						);
-						bool first = true;
-						for (const auto& x : eEnum)
-						{
-							std::string valName;
-							if (auto attr = cppast::has_attribute(x, "mia_gen::enum_val_name"))
-							{
-								valName = attr.value().arguments().value().as_string();
-							}
-							else
-							{
-								valName = "\"" + x.name() + "\"";
-							}
-							if (!first)
-								innerBody += ",\n";
-							innerBody += "\t\t{ " + fmt::format("{}, {}::{}", valName, eName, x.name()) + " }";
-							first = false;
-						}
-						innerBody += "\n\t};\n";
-						innerBody += text::implode(text::process({
-								"const auto it = mapping.find(str);",
-								"if (it == mapping.end())",
-								"\tthrow std::invalid_argument(\"Cannot convert given string to enum.\");",
-								"return it->second;"
-							}, [](const auto& str) { return text::pad(str, 1, '\t'); }), "\n"
-						);
-
-						result = fmt::format(
-							"template<> {} to_enum(const std::string& str) {}",
-							eName,
-							"{\n" + innerBody + "\n};"
-						);
-
-						std::cout << result;
-
-						return true;
-					});
-			}
-			catch (std::exception e)
-			{
-				spdlog::error("{}", e.what());
-			}
-			parser.reset_error();
+			if (!config.dry)
+				outStream << header_end;
 		}
 	}
 }

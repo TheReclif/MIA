@@ -54,9 +54,8 @@ It will output source code of generated functions. Copy it to some header file, 
 ```cpp
 #pragma once
 #include <MiaUtils.hpp>
+[includes to your headers]
 ```
-
-
 
 ## Planned featues
 
