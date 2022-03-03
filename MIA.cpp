@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 		.help("Include directories").required(false);
 	params
 		.add_parameter(outputPattern, "--output", "-o").metavar("<output_pattern>")
-		.help("Output pattern for the output files. Defaults to \"{}.hpp\" where {} is a placeholder for the input file name").required(false).absent("{}.hpp").nargs(1);
+		.help("Output pattern for the output files. Defaults to \"{}.mia.hpp\" where {} is a placeholder for the input file name").required(false).absent("{}.mia.hpp").nargs(1);
 	
 	config.registerOptions(params);
 
