@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 
 #include <StringUtils.hpp>
+#include <CppastUtils.hpp>
 
 static const auto to_string_main_pattern = R"TXT(
 inline const char* to_string(const {} e) {{
@@ -34,24 +35,9 @@ namespace mia::modules
 {
 	void EnumConversionsModule::extractInfo(std::ostream& outputStream, cppast::cpp_file& source)
 	{
-		cppast::visit(source, cppast::whitelist<cppast::cpp_entity_kind::enum_t, cppast::cpp_entity_kind::namespace_t>(),
+		cppast::visit(source, cppast::whitelist<cppast::cpp_entity_kind::enum_t>(),
 			[this, &outputStream](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
 			{
-				thread_local std::vector<std::string> namespaceStack;
-				if (e.kind() == cppast::cpp_entity_kind::namespace_t)
-				{
-					if (info.event == cppast::visitor_info::container_entity_enter)
-					{
-						namespaceStack.push_back(e.name());
-					}
-					else
-					{
-						namespaceStack.pop_back();
-					}
-
-					return true;
-				}
-
 				if (info.is_old_entity() || !(cppast::has_attribute(e, "mia::include")))
 				{
 					return true;
@@ -63,11 +49,9 @@ namespace mia::modules
 					return true;
 				}
 
-				const auto nsName = text::implode(namespaceStack, "::");
+				const auto nsName = utils::getEntityParentFullName(e);
 
-				std::string eName = eEnum.name();
-				if (!nsName.empty())
-					eName = nsName + "::" + eName;
+				std::string eName = nsName + eEnum.name();
 
 				using EnumOption = std::pair<std::string, std::string>;
 

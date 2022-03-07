@@ -9,6 +9,7 @@ target_sources(mia-core PRIVATE
 	Standard.hpp
 	CodeGenerator.hpp
 	Generator.hpp
+	CppastUtils.hpp
 )
 
 target_sources(mia PRIVATE
