@@ -23,6 +23,6 @@ namespace GLOWE
 		int b;
 		int* ptr;
 	protected:
-		int arr[];
+		int arr[8];
 	};
 }

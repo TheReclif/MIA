@@ -50,7 +50,7 @@ namespace mia
 		Type() = default;
 		template<class T>
 		Type(detail::Tag<T>, std::string_view fullName, const Kind kind, std::vector<Field>&& f, std::initializer_list<Attribute> l)
-			: Attributable(std::move(l)), fullyQualifiedName(fullName), kind(kind), typeIndex(typeid(T)), name(fullyQualifiedName), name(nameOf<T>())
+			: Attributable(std::move(l)), fullyQualifiedName(fullName), kind(kind), typeIndex(typeid(T)), name(nameOf<T>())
 		{
 			for (auto&& x : f)
 			{
@@ -71,6 +71,10 @@ namespace mia
 		inline const std::type_index& getTypeIndex() const
 		{
 			return typeIndex;
+		}
+		inline const std::map<std::string_view, Field>& getFields() const
+		{
+			return fields;
 		}
 	private:
 		std::type_index typeIndex;

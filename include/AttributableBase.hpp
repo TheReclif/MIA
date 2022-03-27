@@ -2,7 +2,7 @@
 #ifndef MIA_ATTRIBUTABLE_INCLUDED
 #define MIA_ATTRIBUTABLE_INCLUDED
 
-#include <set>
+#include <map>
 #include <string>
 #include <initializer_list>
 
