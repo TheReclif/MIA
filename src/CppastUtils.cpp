@@ -2,6 +2,7 @@
 
 #include <cppast/cpp_entity.hpp>
 #include <cppast/cpp_entity_kind.hpp>
+#include <cppast/cpp_type.hpp>
 
 #include <deque>
 
@@ -31,5 +32,20 @@ namespace mia::utils
 		}
 
 		return result;
+	}
+
+	std::string getEntityFullyQualifiedName(const cppast::cpp_entity& e)
+	{
+		if (e.parent().has_value())
+		{
+			return getEntityParentFullName(e) + e.name();
+		}
+
+		return e.name();
+	}
+
+	std::string getTypeName(const cppast::cpp_type& type)
+	{
+		return cppast::to_string(type);
 	}
 }

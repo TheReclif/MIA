@@ -7,6 +7,7 @@
 #include <Standard_Gen.hpp>
 
 #include <modules/EnumConversions.hpp>
+#include <modules/Serialization.hpp>
 
 int main(int argc, char** argv)
 {
@@ -40,7 +41,8 @@ int main(int argc, char** argv)
 	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), config);
 
 	app.registerModules({
-		std::make_shared<mia::modules::EnumConversionsModule>()
+		std::make_shared<mia::modules::EnumConversionsModule>(),
+		std::make_shared<mia::modules::SerializationModule>()
 	});
 
 	app.process();
