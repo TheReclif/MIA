@@ -23,7 +23,7 @@ namespace mia::utils
 			scopeStack.push_front(x->name());
 		}
 
-		std::string result = "::";
+		std::string result;
 
 		for (const auto& x : scopeStack)
 		{
