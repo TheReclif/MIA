@@ -29,6 +29,15 @@ target_include_directories(mia PRIVATE include)
 add_subdirectory(src)
 add_subdirectory(include)
 
+# TESTS
+
+add_executable(test Test.cpp)
+target_compile_features(test PUBLIC cxx_std_17)
+target_link_libraries(test PUBLIC mia-core)
+target_include_directories(test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# INSTALLS
+
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${PROJECT_BINARY_DIR}/miaConfigVersion.cmake"
