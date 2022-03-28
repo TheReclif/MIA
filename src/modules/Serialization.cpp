@@ -21,9 +21,12 @@ static void writeAttributesInitList(std::ostream& out, const cppast::cpp_entity&
 	for (const auto& attr : e.attributes())
 	{
 		out << "mia::Attribute(\"" << attr.name() << "\", {";
-		for (const auto& arg : attr.arguments().value())
+		if (attr.arguments().has_value())
 		{
-			out << "\"" << arg.spelling << "\", ";
+			for (const auto& arg : attr.arguments().value())
+			{
+				out << "\"" << arg.spelling << "\", ";
+			}
 		}
 
 		out << "}), ";

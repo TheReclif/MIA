@@ -15,9 +15,10 @@ namespace GLOWE
 		float xxx;
 	};
 
-	class CTest2
+	class [[mia::serialize]] CTest2
 		: public CTest
 	{
+		[[mia::include(true)]]
 		float a;
 	public:
 		int b;
