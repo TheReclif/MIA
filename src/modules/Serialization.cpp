@@ -67,6 +67,11 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 	out << ");\n";
 	out << "\treturn type;\n";
 	out << "}\n";
+	out << "namespace mia {\n";
+	out << "\tnamespace detail {\n";
+	out << "\t\ttemplate class AutoRegisterChild<::" << className << ">;\n";
+	out << "\t}\n";
+	out << "}\n";
 }
 
 namespace mia::modules

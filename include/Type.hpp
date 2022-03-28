@@ -93,36 +93,41 @@ namespace mia
 			return storage;
 		}
 
-		void registerType(Type&& type)
+		inline void registerType(const Type& type)
 		{
 			const auto tid = type.getTypeIndex();
-			const auto temp = types.emplace(tid, std::move(type));
-			nameToTypes.emplace(temp.first->second.getFullyQualifiedName(), &temp.first->second);
+			const auto temp = types.emplace(tid, type);
+			nameToTypes.emplace(temp.first->second.get().getFullyQualifiedName(), type);
 		}
 
 		template<class T>
-		void unregisterType()
+		inline void unregisterType()
 		{
 			nameToTypes.erase(nameOf<T>());
 			types.erase(typeid(T));
 		}
 
 		template<class T>
-		const Type& getType() const
+		inline const Type& getType() const
 		{
-			return types.at(typeid(T));
+			return types.at(typeid(T)).get();
 		}
 
-		const Type& getType(const std::string_view name) const
+		inline const Type& getType(const std::string_view name) const
 		{
-			return *nameToTypes.at(name);
+			return nameToTypes.at(name).get();
+		}
+
+		inline const std::map<std::string_view, std::reference_wrapper<const Type>>& getTypes() const
+		{
+			return nameToTypes;
 		}
 	private:
-		std::map<std::string_view, Type*> nameToTypes;
-		std::map<std::type_index, Type> types;
+		std::map<std::string_view, std::reference_wrapper<const Type>> nameToTypes;
+		std::map<std::type_index, std::reference_wrapper<const Type>> types;
 	};
 
-	namespace hidden
+	namespace detail
 	{
 		template<class T>
 		class TypeRegistrator
@@ -130,7 +135,7 @@ namespace mia
 		public:
 			TypeRegistrator()
 			{
-				TypeStorage::instance().registerType(mia::typeOf<T>());
+				TypeStorage::instance().registerType(typeOf<T>());
 			}
 			~TypeRegistrator()
 			{

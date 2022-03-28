@@ -1,3 +1,5 @@
+#ifndef MIAUTILS_INCLUDED
+#define MIAUTILS_INCLUDED
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
@@ -21,7 +23,7 @@ constexpr const char* nameOf(const T&)
 template<class T>
 const mia::Type& typeOf()
 {
-	static mia::Type type<T>(nameOf<T>(), mia::Type::Kind::Other, {}, {});
+	static mia::Type type(mia::detail::Tag<T>(), nameOf<T>(), mia::Type::Kind::Other, {}, {});
 	return type;
 }
 
@@ -45,3 +47,4 @@ template<class T> void deserialize(std::istream&, const T&)
 {
 	throw std::logic_error("Serialization for " + std::string(nameOf<T>()) + " not implemented.");
 }
+#endif
