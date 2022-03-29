@@ -49,8 +49,8 @@ namespace mia
 	public:
 		Type() = default;
 		template<class T>
-		Type(detail::Tag<T>, std::string_view fullName, const Kind kind, std::vector<Field>&& f, std::initializer_list<Attribute> l)
-			: Attributable(std::move(l)), fullyQualifiedName(fullName), kind(kind), typeIndex(typeid(T)), name(nameOf<T>())
+		Type(detail::Tag<T>, std::string_view fullName, const Kind kind, std::vector<Field>&& f, std::initializer_list<Attribute> l, std::initializer_list<std::reference_wrapper<const Type>> parents)
+			: Attributable(std::move(l)), fullyQualifiedName(fullName), kind(kind), typeIndex(typeid(T)), name(nameOf<T>()), bases(parents)
 		{
 			for (auto&& x : f)
 			{
@@ -76,10 +76,14 @@ namespace mia
 		{
 			return fields;
 		}
+		inline const std::vector<std::reference_wrapper<const Type>>& getBases() const
+		{
+			return bases;
+		}
 	private:
 		std::type_index typeIndex;
 		std::string_view fullyQualifiedName, name;
-		std::vector<std::reference_wrapper<Type>> parents;
+		std::vector<std::reference_wrapper<const Type>> bases;
 		std::map<std::string_view, Field> fields;
 		Kind kind;
 	};

@@ -34,7 +34,7 @@ static void writeAttributesInitList(std::ostream& out, const cppast::cpp_entity&
 	out << "}";
 }
 
-static void generateCodeForClass(std::ostream& out, const std::pair<const cppast::cpp_entity*, std::vector<MembrVar>>& x)
+static void generateCodeForClass(std::ostream& out, const std::pair<const cppast::cpp_class*, std::vector<MembrVar>>& x)
 {
 	using namespace mia;
 
@@ -64,7 +64,12 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 	}
 	out << "\t\t},\n\t\t";
 	writeAttributesInitList(out, *x.first);
-	out << ");\n";
+	out << ",\n\t\t{";
+	for (const auto& x : x.first->bases())
+	{
+		out << "typeOf<" << utils::getEntityFullyQualifiedName(x) << ">(), ";
+	}
+	out << "});\n";
 	out << "\treturn type;\n";
 	out << "}\n";
 	out << "namespace mia {\n";
@@ -78,7 +83,7 @@ namespace mia::modules
 {
 	void SerializationModule::extractInfo(std::ostream& output, cppast::cpp_file& cppFile)
 	{
-		thread_local std::unordered_map<const cppast::cpp_entity*, std::vector<MembrVar>> classes;
+		thread_local std::unordered_map<const cppast::cpp_class*, std::vector<MembrVar>> classes;
 		thread_local cppast::cpp_access_specifier_kind currentAccess;
 
 		cppast::visit(cppFile, cppast::whitelist<cppast::cpp_entity_kind::member_variable_t, cppast::cpp_entity_kind::class_t, cppast::cpp_entity_kind::access_specifier_t>(),
@@ -106,7 +111,15 @@ namespace mia::modules
 
 				const cppast::cpp_member_variable& memberVariable = static_cast<const cppast::cpp_member_variable&>(e);
 
-				classes[&memberVariable.parent().value()].push_back({ &memberVariable, currentAccess });
+				auto& parent = memberVariable.parent().value();
+				switch (parent.kind())
+				{
+				case cppast::cpp_entity_kind::class_t:
+					classes[static_cast<const cppast::cpp_class*>(&memberVariable.parent().value())].push_back({ &memberVariable, currentAccess });
+					break;
+				case cppast::cpp_entity_kind::class_template_t:
+					break;
+				}
 
 				return true;
 			}

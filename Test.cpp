@@ -17,7 +17,11 @@ int main()
 		std::cout << "type " << type.first << std::endl;
 		for (const auto& field : type.second.get().getFields())
 		{
-			std::cout << "\tfield " << field.second.type << " " << field.first << std::endl;
+			std::cout << "\tfield " << field.second.type << ' ' << field.first << '\n';
+		}
+		for (const auto& base : type.second.get().getBases())
+		{
+			std::cout << "\tbase class " << base.get().getFullyQualifiedName() << '\n';
 		}
 	}
 	
