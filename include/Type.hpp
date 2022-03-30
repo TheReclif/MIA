@@ -150,8 +150,13 @@ namespace mia
 		template<class Child>
 		class AutoRegisterChild
 		{
-		private:
+		public:
 			static const TypeRegistrator<Child> myLovelyRegistrator;
+		public:
+			AutoRegisterChild()
+			{
+				(void)myLovelyRegistrator;
+			}
 		};
 		template<class Child>
 		const TypeRegistrator<Child> AutoRegisterChild<Child>::myLovelyRegistrator = TypeRegistrator<Child>();

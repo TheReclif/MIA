@@ -6,12 +6,32 @@
 
 #include <Type.hpp>
 
-template<typename T> class EnumConverter {};
-
+template<typename T>
+class EnumConverter {};
+namespace detail
+{
+	template<class T>
+	struct NameOf
+	{
+		static const char* name()
+		{
+			return typeid(T).name();
+		}
+	};
+	template<class T>
+	struct TypeOf
+	{
+		static const mia::Type& type()
+		{
+			static mia::Type type(mia::detail::Tag<T>(), nameOf<T>(), mia::Type::Kind::Other, {}, {});
+			return type;
+		}
+	};
+}
 template<class T>
 constexpr const char* nameOf()
 {
-	return typeid(T).name();
+	return detail::NameOf<T>::name();
 }
 
 template<class T>
@@ -23,8 +43,7 @@ constexpr const char* nameOf(const T&)
 template<class T>
 const mia::Type& typeOf()
 {
-	static mia::Type type(mia::detail::Tag<T>(), nameOf<T>(), mia::Type::Kind::Other, {}, {});
-	return type;
+	return detail::TypeOf<T>::type();
 }
 
 template<class T>

@@ -40,12 +40,13 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 
 	const auto className = utils::getEntityFullyQualifiedName(*x.first);
 
-	out << "template<> constexpr const char* nameOf<" << className << ">() { return \"" << x.first->name() << "\"; }\n";
-	out << "template<> const mia::Type& typeOf<" << className << ">()\n{\n";
-	out << "\tstatic mia::Type type(mia::detail::Tag<" << className << ">(), \"" << className << "\", mia::Type::Kind::Class, {\n";
+	out << "namespace detail { template<> struct NameOf<" << className << "> { static const char* name() { return \"" << x.first->name() << "\"; }};}\n";
+	out << "namespace detail { template<> struct TypeOf<" << className << ">\n{\n";
+	out << "\tstatic const mia::Type& type()\n\t{\n";
+	out << "\t\tstatic mia::Type type(mia::detail::Tag<" << className << ">(), \"" << className << "\", mia::Type::Kind::Class, {\n";
 	for (const auto& member : x.second)
 	{
-		out << "\t\tmia::Field(mia::AccessSpecifier::";
+		out << "\t\t\tmia::Field(mia::AccessSpecifier::";
 		switch (member.access)
 		{
 		case cppast::cpp_access_specifier_kind::cpp_private:
@@ -62,15 +63,16 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 		writeAttributesInitList(out, *member.var);
 		out << "),\n";
 	}
-	out << "\t\t},\n\t\t";
+	out << "\t\t\t},\n\t\t\t";
 	writeAttributesInitList(out, *x.first);
-	out << ",\n\t\t{";
+	out << ",\n\t\t\t{";
 	for (const auto& x : x.first->bases())
 	{
 		out << "typeOf<" << utils::getEntityFullyQualifiedName(x) << ">(), ";
 	}
 	out << "});\n";
-	out << "\treturn type;\n";
+	out << "\t\treturn type;\n";
+	out << "\t}\n};\n";
 	out << "}\n";
 	out << "namespace mia {\n";
 	out << "\tnamespace detail {\n";
