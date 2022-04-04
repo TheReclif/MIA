@@ -39,11 +39,20 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 	using namespace mia;
 
 	const auto className = utils::getEntityFullyQualifiedName(*x.first);
+	const auto isClassTemplate = utils::isTemplate(*x.first);
 
-	out << "namespace detail { template<> struct NameOf<" << className << "> { static const char* name() { return \"" << x.first->name() << "\"; }};}\n";
-	out << "namespace detail { template<> struct TypeOf<" << className << ">\n{\n";
+	if (!isClassTemplate)
+	{
+		out << "namespace detail { template<> struct NameOf<" << className << "> { static const char* name() { return \"" << x.first->name() << "\"; }};}\n";
+		out << "namespace detail { template<> struct TypeOf<" << className << ">\n{\n";
+	}
+	else
+	{
+		out << "namespace detail { template<class... Args> struct NameOf<" << className << "<Args...>> { static const char* name() { return \"" << x.first->name() << "\"; }};}\n";
+		out << "namespace detail { template<class... Args> struct TypeOf<" << className << "<Args...>>\n{\n";
+	}
 	out << "\tstatic const mia::Type& type()\n\t{\n";
-	out << "\t\tstatic mia::Type type(mia::detail::Tag<" << className << ">(), \"" << className << "\", mia::Type::Kind::Class, {\n";
+	out << "\t\tstatic mia::Type type(mia::detail::Tag<" << className << (isClassTemplate ? "<Args...>>(), \"" : ">(), \"") << className << "\", mia::Type::Kind::Class, {\n";
 	for (const auto& member : x.second)
 	{
 		out << "\t\t\tmia::Field(mia::AccessSpecifier::";
@@ -68,17 +77,24 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 	out << ",\n\t\t\t{";
 	for (const auto& x : x.first->bases())
 	{
-		out << "typeOf<" << utils::getEntityFullyQualifiedName(x) << ">(), ";
+		// HACK
+		if (!utils::isTemplate(x.parent().value()))
+		{
+			out << "typeOf<" << utils::getEntityFullyQualifiedName(x) << ">(), ";
+		}
 	}
 	out << "});\n";
 	out << "\t\treturn type;\n";
 	out << "\t}\n};\n";
 	out << "}\n";
-	out << "namespace mia {\n";
-	out << "\tnamespace detail {\n";
-	out << "\t\ttemplate class AutoRegisterChild<::" << className << ">;\n";
-	out << "\t}\n";
-	out << "}\n";
+	if (!isClassTemplate)
+	{
+		out << "namespace mia {\n";
+		out << "\tnamespace detail {\n";
+		out << "\t\ttemplate class AutoRegisterChild<::" << className << ">;\n";
+		out << "\t}\n";
+		out << "}\n";
+	}
 }
 
 namespace mia::modules
@@ -118,8 +134,6 @@ namespace mia::modules
 				{
 				case cppast::cpp_entity_kind::class_t:
 					classes[static_cast<const cppast::cpp_class*>(&memberVariable.parent().value())].push_back({ &memberVariable, currentAccess });
-					break;
-				case cppast::cpp_entity_kind::class_template_t:
 					break;
 				}
 
