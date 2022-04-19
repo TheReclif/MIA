@@ -2,23 +2,11 @@
 
 #include <iostream>
 
-namespace GLOWE
-{
-	//template class TemplatedTest<int>;
-}
-
-//template class mia::detail::AutoRegisterChild<GLOWE::TemplatedTest<float>>;
-
 int main()
 {
-	/*std::cout << typeOf<GLOWE::CTest>().getFullyQualifiedName() << std::endl;
-	const auto& type = typeOf<GLOWE::CTest>();
-	for (const auto& field : type.getFields())
-	{
-		std::cout << "\t" << field.second.type << " " << field.second.name << std::endl;
-	}*/
-
 	GLOWE::TemplatedTest<float> t;
+	GLOWE::TemplatedTest<int> xd;
+
 	const auto& types = mia::TypeStorage::instance();
 	for (const auto& type : types.getTypes())
 	{

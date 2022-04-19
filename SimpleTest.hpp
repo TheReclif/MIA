@@ -47,7 +47,7 @@ namespace GLOWE
 	{
 	public:
 		[[dupaaaaa]]
-		float xxxxxx;
+		T xxxxxx;
 	public:
 		TemplatedTest()
 			: xxxxxx{}
