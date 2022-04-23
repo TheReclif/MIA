@@ -23,7 +23,7 @@ namespace detail
 	{
 		static const mia::Type& type()
 		{
-			static mia::Type type(mia::detail::Tag<T>(), nameOf<T>(), mia::Type::Kind::Other, {}, {});
+			static mia::Type type(mia::detail::Tag<T>(), nameOf<T>(), mia::Type::Kind::Other, {}, {}, {});
 			return type;
 		}
 	};

@@ -102,7 +102,10 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 		writeAttributesInitList(out, *member.var);
 		// TODO: Field access
 		out << ", typeid(" << className << ")";
-		out << ", typeid(decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << "))),\n";
+		out << ", typeid(decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << "))";
+		out << ", [](void* obj, const void* newVal) { reinterpret_cast<::_autogen_::" << fakeClassName << "*>(obj)->" << member.var->name() << " = *reinterpret_cast<const decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << ")*>(newVal); }";
+		out << ", [](const void* obj) -> const void* { return &reinterpret_cast<const ::_autogen_::" << fakeClassName << "*>(obj)->" << member.var->name() << "; }";
+		out << "),\n";
 	}
 	out << "\t\t\t},\n\t\t\t";
 	writeAttributesInitList(out, *x.first);

@@ -4,7 +4,6 @@
 
 int main()
 {
-	GLOWE::TemplatedTest<float> t;
 	GLOWE::TemplatedTest<int> xd;
 
 	const auto& types = mia::TypeStorage::instance();
@@ -13,13 +12,20 @@ int main()
 		std::cout << "type " << type.first << std::endl;
 		for (const auto& field : type.second.get().getFields())
 		{
-			std::cout << "\tfield " << field.second.type << ' ' << field.first << '\n';
+			std::cout << "\tfield " << field.second.getTypeName() << ' ' << field.first << '\n';
 		}
 		for (const auto& base : type.second.get().getBases())
 		{
 			std::cout << "\tbase class " << base.get().getFullyQualifiedName() << '\n';
 		}
 	}
+
+	GLOWE::Test t;
+	t.xxx = 3.0f;
+	float newVal = 8.0f;
+	typeOf(t).getFields().at("xxx").set(&t, &newVal);
+	std::cout << "Legit way: " << t.xxx << std::endl;
+	std::cout << "Hackish way: " << *typeOf(t).getFields().at("xxx").get<decltype(t), float>(&t) << std::endl;
 	
 	return 0;
 }

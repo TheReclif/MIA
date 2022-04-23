@@ -39,31 +39,59 @@ namespace mia
 		: public Attributable
 	{
 	public:
-		inline Field(const AccessSpecifier spec, const char* name, const char* type, std::initializer_list<Attribute> l, std::type_index&& cType, std::type_index&& fType)
-			: Attributable(std::move(l)), access(spec), name(name), type(type), classType(std::move(cType)), fieldType(std::move(fType))
+		inline Field(
+			const AccessSpecifier spec,
+			const char* name,
+			const char* type,
+			std::initializer_list<Attribute> l,
+			std::type_index&& cType,
+			std::type_index&& fType,
+			std::function<void(void*, const void*)>&& setterArg,
+			std::function<const void* (const void*)>&& getterArg)
+			: Attributable(std::move(l)), access(spec), name(name), type(type), classType(std::move(cType)), fieldType(std::move(fType)), setter(std::move(setterArg)), getter(std::move(getterArg))
 		{
 		}
 
 		template<class T1, class T2>
-		const T2* get(const T1* const obj)
+		const T2* get(const T1* const obj) const
 		{
-			if (typeid(T1) != classType || typeid(T2) != fieldType)
-			{
-				throw FieldTypeMismatchException();
-			}
-
-			return static_cast<const void*>(getter(static_cast<const void*>(obj)));
+			return static_cast<const T2*>(get(obj, typeid(T1), typeid(T2)));
 		}
 
 		template<class T1, class T2>
-		void set(T1* const obj, const T2* const arg)
+		void set(T1* const obj, const T2* const arg) const
 		{
-			if (typeid(T1) != classType || typeid(T2) != fieldType)
+			set(obj, arg, typeid(T1), typeid(T2));
+		}
+
+		const void* get(const void* const obj, const std::type_index& objType, const std::type_index& resultType) const
+		{
+			if (objType != classType || resultType != fieldType)
 			{
 				throw FieldTypeMismatchException();
 			}
 
-			getter(static_cast<const void*>(obj), static_cast<void*>(arg));
+			return getter(obj);
+		}
+
+		void set(void* const obj, const void* const arg, const std::type_index& objType, const std::type_index& argType) const
+		{
+			if (objType != classType || argType != fieldType)
+			{
+				throw FieldTypeMismatchException();
+			}
+
+			setter(obj, arg);
+		}
+
+		inline std::string_view getName() const
+		{
+			return name;
+		}
+
+		inline std::string_view getTypeName() const
+		{
+			return type;
 		}
 	private:
 		AccessSpecifier access;
@@ -91,7 +119,7 @@ namespace mia
 		{
 			for (auto&& x : f)
 			{
-				const auto temp = x.name;
+				const auto temp = x.getName();
 				fields.emplace(temp, std::move(x));
 			}
 			f.clear();
