@@ -34,6 +34,39 @@ static void writeAttributesInitList(std::ostream& out, const cppast::cpp_entity&
 	out << "}";
 }
 
+static std::string generateFakePublicClass(std::ostream& out, const cppast::cpp_class& c)
+{
+	using namespace mia;
+
+	const std::string fakeClassName = "Fake_" + c.name();
+
+	out << "namespace _autogen_\n";
+	out << "{\n";
+	out << '\t' << "struct " << fakeClassName << (c.bases().empty() ? "\n" : " :\n");
+	for (const auto& x : c.bases())
+	{
+		out << "\t\t" << cppast::to_string(x.access_specifier()) << " " << utils::getEntityFullyQualifiedName(x) << '\n';
+	}
+	out << "\t{\n";
+	out << "\t\t" << fakeClassName << "() = delete;\n\n";
+	for (const auto& x : c)
+	{
+		switch (x.kind())
+		{
+		case cppast::cpp_entity_kind::member_variable_t:
+		{
+			const cppast::cpp_member_variable& var = static_cast<const cppast::cpp_member_variable&>(x);
+			out << "\t\t" << utils::getVariableWithTypeName(var) << ";\n";
+		}
+			break;
+		}
+	}
+	out << "\t};\n";
+	out << "}\n";
+
+	return fakeClassName;
+}
+
 static void generateCodeForClass(std::ostream& out, const std::pair<const cppast::cpp_class*, std::vector<MembrVar>>& x)
 {
 	using namespace mia;
@@ -43,6 +76,8 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 		return;
 	}
 	const auto className = utils::getEntityFullyQualifiedName(*x.first);
+
+	const auto fakeClassName = generateFakePublicClass(out, *x.first);
 
 	out << "namespace detail { template<> struct NameOf<" << className << "> { static const char* name() { return \"" << x.first->name() << "\"; }};}\n";
 	out << "namespace detail { template<> struct TypeOf<" << className << ">\n{\n";
@@ -65,7 +100,9 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 		}
 		out << ", \"" << member.var->name() << "\", \"" << utils::getTypeName(member.var->type()) << "\", ";
 		writeAttributesInitList(out, *member.var);
-		out << "),\n";
+		// TODO: Field access
+		out << ", typeid(" << className << ")";
+		out << ", typeid(decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << "))),\n";
 	}
 	out << "\t\t\t},\n\t\t\t";
 	writeAttributesInitList(out, *x.first);

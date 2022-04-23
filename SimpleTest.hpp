@@ -30,9 +30,10 @@ namespace GLOWE
 		float a = 8.0f;
 	public:
 		int b;
-		int* ptr;
+		int*** ptr;
+		std::string& cxx;
 	protected:
-		int arr[8];
+		int arr[8][7];
 	public:
 		[[u::ServerRpc]]
 		inline void serverRpc()

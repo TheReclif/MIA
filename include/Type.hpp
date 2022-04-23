@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <typeindex>
+#include <functional>
 
 namespace mia
 {
@@ -25,15 +26,51 @@ namespace mia
 		Private
 	};
 
-	struct Field
+	struct FieldTypeMismatchException
+		: public std::exception
+	{
+		virtual const char* what() const noexcept override
+		{
+			return "Type mismatch between passed type and field/object type";
+		}
+	};
+
+	class Field
 		: public Attributable
 	{
+	public:
+		inline Field(const AccessSpecifier spec, const char* name, const char* type, std::initializer_list<Attribute> l, std::type_index&& cType, std::type_index&& fType)
+			: Attributable(std::move(l)), access(spec), name(name), type(type), classType(std::move(cType)), fieldType(std::move(fType))
+		{
+		}
+
+		template<class T1, class T2>
+		const T2* get(const T1* const obj)
+		{
+			if (typeid(T1) != classType || typeid(T2) != fieldType)
+			{
+				throw FieldTypeMismatchException();
+			}
+
+			return static_cast<const void*>(getter(static_cast<const void*>(obj)));
+		}
+
+		template<class T1, class T2>
+		void set(T1* const obj, const T2* const arg)
+		{
+			if (typeid(T1) != classType || typeid(T2) != fieldType)
+			{
+				throw FieldTypeMismatchException();
+			}
+
+			getter(static_cast<const void*>(obj), static_cast<void*>(arg));
+		}
+	private:
 		AccessSpecifier access;
 		std::string_view name, type;
-
-		inline Field(const AccessSpecifier spec, const char* name, const char* type, std::initializer_list<Attribute> l)
-			: Attributable(std::move(l)), access(spec), name(name), type(type)
-		{}
+		std::function<void(void*, const void*)> setter;
+		std::function<const void*(const void*)> getter;
+		std::type_index classType, fieldType;
 	};
 
 	class Type
@@ -49,7 +86,7 @@ namespace mia
 	public:
 		Type() = default;
 		template<class T>
-		Type(detail::Tag<T>, std::string_view fullName, const Kind kind, std::vector<Field>&& f, std::initializer_list<Attribute> l, std::initializer_list<std::reference_wrapper<const Type>> parents)
+		Type(const detail::Tag<T>, const std::string_view fullName, const Kind kind, std::vector<Field>&& f, const std::initializer_list<Attribute> l, const std::initializer_list<std::reference_wrapper<const Type>> parents)
 			: Attributable(std::move(l)), fullyQualifiedName(fullName), kind(kind), typeIndex(typeid(T)), name(nameOf<T>()), bases(parents)
 		{
 			for (auto&& x : f)
