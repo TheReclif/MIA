@@ -23,7 +23,6 @@ namespace GLOWE
 		float xxx;
 	};
 
-	/*
 	class [[mia::serialize]] Test2
 		: public Test
 	{
@@ -42,7 +41,6 @@ namespace GLOWE
 			int xaz = 7;
 		}
 	};
-	*/
 
 	template<class T>
 	class [[mia::serialize]] TemplatedTest

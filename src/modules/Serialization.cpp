@@ -67,6 +67,21 @@ static std::string generateFakePublicClass(std::ostream& out, const cppast::cpp_
 	return fakeClassName;
 }
 
+static bool isValidMemberVariableType(const cppast::cpp_type& type)
+{
+	using cppast::cpp_type_kind;
+	switch (type.kind())
+	{
+	case cpp_type_kind::reference_t:
+		// TODO: Implement pointer and array serialization.
+	case cpp_type_kind::pointer_t:
+	case cpp_type_kind::array_t:
+		return false;
+	}
+
+	return true;
+}
+
 static void generateCodeForClass(std::ostream& out, const std::pair<const cppast::cpp_class*, std::vector<MembrVar>>& x)
 {
 	using namespace mia;
@@ -103,8 +118,16 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 		// TODO: Field access
 		out << ", typeid(" << className << ")";
 		out << ", typeid(decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << "))";
-		out << ", [](void* obj, const void* newVal) { reinterpret_cast<::_autogen_::" << fakeClassName << "*>(obj)->" << member.var->name() << " = *reinterpret_cast<const decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << ")*>(newVal); }";
-		out << ", [](const void* obj) -> const void* { return &reinterpret_cast<const ::_autogen_::" << fakeClassName << "*>(obj)->" << member.var->name() << "; }";
+		if (isValidMemberVariableType(member.var->type()))
+		{
+			out << ", [](void* obj, const void* newVal) { reinterpret_cast<::_autogen_::" << fakeClassName << "*>(obj)->" << member.var->name() << " = *reinterpret_cast<const decltype(::_autogen_::" << fakeClassName << "::" << member.var->name() << ")*>(newVal); }";
+			out << ", [](const void* obj) -> const void* { return &reinterpret_cast<const ::_autogen_::" << fakeClassName << "*>(obj)->" << member.var->name() << "; }";
+		}
+		else
+		{
+			out << ", [](void*, const void*) {}";
+			out << ", [](const void*) -> const void* { return nullptr; }";
+		}
 		out << "),\n";
 	}
 	out << "\t\t\t},\n\t\t\t";
