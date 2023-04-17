@@ -70,7 +70,7 @@ namespace mia
 			if (parser.error())
 			{
 				spdlog::error("Unable to parse {}", targetFile);
-				return;
+				throw std::exception("Parse error");
 			}
 			spdlog::info("{} parsed", targetFile);
 
@@ -81,9 +81,10 @@ namespace mia
 
 			spdlog::info("Info from {} extracted", targetFile);
 		}
-		catch (std::exception e)
+		catch (const std::exception& e)
 		{
 			spdlog::error("{}", e.what());
+			throw;
 		}
 		parser.reset_error();
 	}

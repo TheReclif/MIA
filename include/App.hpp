@@ -7,6 +7,8 @@
 #include <string_view>
 #include <optional>
 #include <atomic>
+#include <filesystem>
+
 #include <argumentum/argparse.h>
 
 #include <Generator.hpp>
@@ -15,6 +17,12 @@ namespace mia
 {
 	class App
 	{
+	public:
+		struct File
+		{
+			std::filesystem::path path;
+			std::string content;
+		};
 	public:
 		App() = delete;
 		App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const mia::GeneratorConfig& config);
@@ -26,12 +34,13 @@ namespace mia
 		App& operator=(const App&) = delete;
 		App& operator=(App&&) noexcept = delete;
 
-		void process();
+		bool process();
 		void registerModule(const GeneratorModule::Ptr& module);
 		void registerModules(const std::vector<GeneratorModule::Ptr>& modules);
 	private:
 		std::optional<std::string_view> getNextFileToProcess();
-		void threadFunc();
+		void threadFunc(std::vector<File>& output, bool& error);
+		void applyFiles(const std::vector<File>& files) const;
 
 		const std::vector<std::string> filesToProcess, includeDirs;
 		const std::string pattern;

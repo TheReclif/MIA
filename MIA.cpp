@@ -10,6 +10,7 @@
 #include <modules/Serialization.hpp>
 
 int main(int argc, char** argv)
+try
 {
 	// Setup the tool's arguments.
 	std::vector<std::string> filesToProcess, includeDirs;
@@ -36,7 +37,13 @@ int main(int argc, char** argv)
 
 	auto res = parser.parse_args(argc, argv);
 	if (!res)
+	{
+		for (const auto& x : res.errors)
+		{
+			x.describeError(std::cout);
+		}
 		return 1;
+	}
 
 	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), config);
 
@@ -45,7 +52,15 @@ int main(int argc, char** argv)
 		std::make_shared<mia::modules::SerializationModule>()
 	});
 
-	app.process();
+	if (!app.process())
+	{
+		return 1;
+	}
 
 	return 0;
+}
+catch (...)
+{
+	std::cout << "Unexpected exception" << std::endl;
+	return 1;
 }

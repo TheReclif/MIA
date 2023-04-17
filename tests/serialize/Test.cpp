@@ -1,4 +1,5 @@
-#include "out/build/x64-Debug/SimpleTest.mia.hpp"
+#include <SimpleTest.hpp>
+#include <SimpleTest.mia.hpp>
 
 #include <iostream>
 

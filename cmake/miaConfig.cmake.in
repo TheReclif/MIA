@@ -3,21 +3,35 @@
 include("${CMAKE_CURRENT_LIST_DIR}/miaTargets.cmake")
 check_required_components("@PROJECT_NAME@")
 
-set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
+#set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
+find_program(mia_executable_path mia PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../bin)
 
 function(miagen target)
 	get_target_property(mia_fetched_sources ${target} SOURCES)
 	get_target_property(mia_fetched_sources_dir ${target} SOURCE_DIR)
+	get_target_property(mia_fetched_include_dirs ${target} INCLUDE_DIRECTORIES)
+
+	list(JOIN mia_fetched_include_dirs " " mia_fetched_include_dirs)
+	# list(JOIN mia_fetched_include_dirs [=[" "]=] mia_fetched_include_dirs)
+	# string(APPEND mia_fetched_include_dirs [=["]=])
+	# string(PREPEND mia_fetched_include_dirs [=["]=])
+
 	list(FILTER mia_fetched_sources INCLUDE REGEX "\\.(hpp|h|hxx)$")
+
 	foreach(mia_header_file IN LISTS mia_fetched_sources)
 		get_filename_component(mia_file_name ${mia_header_file} NAME_WE)
 		set(mia_input_file "${mia_fetched_sources_dir}/${mia_header_file}")
 		set(mia_output_file "${CMAKE_CURRENT_BINARY_DIR}/${mia_file_name}.mia.hpp")
 		
-		set(mia_command_bundle "${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}")
+		set(mia_command_bundle "${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file} -i ${mia_fetched_include_dirs}")
 		
+		#add_custom_command(OUTPUT ${mia_output_file}
+		#	COMMAND ${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file} -i ${mia_fetched_include_dirs}
+		#	DEPENDS ${mia_input_file}
+		#)
 		add_custom_command(OUTPUT ${mia_output_file}
-			COMMAND ${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}
+			COMMAND ${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file} -i "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>"
+			COMMAND_EXPAND_LISTS
 			DEPENDS ${mia_input_file}
 		)
 		
@@ -26,4 +40,6 @@ function(miagen target)
 		add_dependencies(${target} ${mia_output_file_target})
 	endforeach()
 	target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+	set("${target}_MIA_INCLUDE_DIR" "${CMAKE_CURRENT_BINARY_DIR}")
+	return(PROPAGATE "${target}_MIA_INCLUDE_DIR")
 endfunction()

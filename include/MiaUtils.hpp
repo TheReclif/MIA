@@ -28,6 +28,38 @@ namespace detail
 		}
 	};
 }
+
+namespace mia
+{
+	struct Serializable;
+
+	struct Referencable
+	{
+		virtual ~Referencable() = default;
+	};
+
+	struct Serializer
+	{
+		virtual ~Serializer() = default;
+
+		virtual void serialize(const std::string_view name, std::string&& value) = 0;
+		virtual void serialize(const std::string_view name, const Serializable& value) = 0;
+		virtual void serialize(const std::string_view name, const Referencable* const ref) = 0;
+
+		virtual const std::string& deserialize(const std::string_view name) = 0;
+		virtual void deserialize(const std::string_view name, Serializable& value) = 0;
+		virtual Referencable* deserializeRef(const std::string_view name) = 0;
+	};
+
+	struct Serializable
+	{
+		virtual ~Serializable() = default;
+
+		virtual void serialize(std::ostream&) const = 0;
+		virtual void deserialize(std::istream&) = 0;
+	};
+}
+
 template<class T>
 constexpr const char* nameOf()
 {
@@ -57,13 +89,23 @@ template<typename T> T to_enum(const std::string&)
 	throw std::logic_error("Enum conversion for given type not implemented.");
 }
 
-template<class T> void serialize(std::ostream&, const T&)
+template<class T> void serialize(std::ostream& out, const T& arg)
 {
-	throw std::logic_error("Serialization for " + std::string(nameOf<T>()) + " not implemented.");
+	out << arg;
 }
 
-template<class T> void deserialize(std::istream&, const T&)
+template<class T> void deserialize(std::istream& in, T& arg)
 {
-	throw std::logic_error("Serialization for " + std::string(nameOf<T>()) + " not implemented.");
+	in >> arg;
+}
+
+template<> inline void serialize(std::ostream& out, const mia::Serializable& arg)
+{
+	arg.serialize(out);
+}
+
+template<> inline void deserialize(std::istream& in, mia::Serializable& arg)
+{
+	arg.deserialize(in);
 }
 #endif
