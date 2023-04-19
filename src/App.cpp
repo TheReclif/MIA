@@ -40,6 +40,7 @@ namespace mia
 			{
 				return false;
 			}
+			applyFiles(out);
 			return true;
 		}
 		

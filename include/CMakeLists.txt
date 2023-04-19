@@ -2,7 +2,7 @@ target_sources(utils PRIVATE
 	MiaUtils.hpp
 )
 
-install(FILES MiaUtils.hpp DESTINATION include)
+install(FILES MiaUtils.hpp Type.hpp AttributableBase.hpp DESTINATION include)
 
 target_sources(mia-core PRIVATE
 	StringUtils.hpp
@@ -11,6 +11,7 @@ target_sources(mia-core PRIVATE
 	Generator.hpp
 	CppastUtils.hpp
 	Type.hpp
+	AttributableBase.hpp
 )
 
 target_sources(mia PRIVATE

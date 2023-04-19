@@ -4,6 +4,8 @@
 
 #include <map>
 #include <string>
+#include <vector>
+#include <string_view>
 #include <initializer_list>
 
 namespace mia

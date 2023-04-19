@@ -4,4 +4,6 @@ project(test LANGUAGES CXX)
 
 find_package(mia REQUIRED CONFIG)
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_subdirectory(serialize)
