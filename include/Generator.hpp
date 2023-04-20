@@ -6,6 +6,7 @@
 #include <cppast/libclang_parser.hpp>
 #include <vector>
 #include <memory>
+#include <string_view>
 #include <argumentum/argparse.h>
 
 #include <Standard.hpp>
@@ -27,7 +28,11 @@ namespace mia
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
 
+		virtual ~GeneratorModule() = default;
+
 		virtual void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) = 0;
+		[[nodiscard]]
+		virtual const char* getVersion() const = 0;
 	};
 
 	class Generator

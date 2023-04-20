@@ -19,6 +19,7 @@ add_library(mia-core)
 target_compile_features(mia-core PRIVATE cxx_std_17)
 target_link_libraries(mia-core PUBLIC utils cppast spdlog::spdlog spdlog::spdlog_header_only)
 target_include_directories(mia-core PRIVATE include)
+target_compile_definitions(mia-core PUBLIC MIA_VERSION="${CMAKE_PROJECT_VERSION}")
 
 add_executable(mia Mia.cpp)
 

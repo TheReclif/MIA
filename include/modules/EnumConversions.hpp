@@ -10,6 +10,7 @@ namespace mia::modules
 	{
 	public:
 		virtual void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) override;
+		virtual const char* getVersion() const override;
 	};
 }
 

@@ -204,4 +204,9 @@ namespace mia::modules
 			generateCodeForClass(output, x);
 		}
 	}
+
+	const char* mia::modules::SerializationModule::getVersion() const
+	{
+		return MIA_VERSION;
+	}
 }
