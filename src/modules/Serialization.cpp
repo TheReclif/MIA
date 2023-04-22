@@ -133,12 +133,12 @@ static void generateCodeForClass(std::ostream& out, const std::pair<const cppast
 	out << "\t\t\t},\n\t\t\t";
 	writeAttributesInitList(out, *x.first);
 	out << ",\n\t\t\t{";
-	for (const auto& x : x.first->bases())
+	for (const auto& y : x.first->bases())
 	{
 		// HACK
-		if (!utils::isTemplate(x.parent().value()))
+		if (!utils::isTemplate(y.parent().value()))
 		{
-			out << "typeOf<" << utils::getEntityFullyQualifiedName(x) << ">(), ";
+			out << "typeOf<" << utils::getEntityFullyQualifiedName(y) << ">(), ";
 		}
 	}
 	out << "});\n";
