@@ -1,4 +1,5 @@
 target_sources(mia-core PRIVATE
+	DynamicLibrary.cpp
 	StringUtils.cpp
 	CodeGenerator.cpp
 	Generator.cpp

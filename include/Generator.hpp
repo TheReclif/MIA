@@ -10,6 +10,13 @@
 #include <argumentum/argparse.h>
 
 #include <Standard.hpp>
+#include <DynamicLibrary.hpp>
+
+#ifdef WIN32
+#define MiaExportModule(name) inline __declspec(dllexport) mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
+#else
+#define MiaExportModule(name) inline mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
+#endif
 
 namespace mia
 {
@@ -27,12 +34,15 @@ namespace mia
 	{
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
+		using CreateFunc = Ptr(*)();
 
 		virtual ~GeneratorModule() = default;
 
 		virtual void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) = 0;
 		[[nodiscard]]
 		virtual const char* getVersion() const = 0;
+
+		static Ptr loadFromLibrary(const DynamicLibrary& lib);
 	};
 
 	class Generator

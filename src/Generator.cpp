@@ -50,16 +50,19 @@ namespace mia
 			compileConfig.add_include_dir(x);
 		}
 	}
+
 	void Generator::registerModule(const GeneratorModule::Ptr& module)
 	{
 		modules.emplace_back(module);
 	}
+
 	void Generator::registerModules(const std::vector<GeneratorModule::Ptr>& modules)
 	{
 		this->modules.reserve(this->modules.size() + modules.size());
 		for (auto& module : modules)
 			this->modules.emplace_back(module);
 	}
+
 	void Generator::generate(std::ostream& outputStream, const std::string& targetFile)
 	{
 		cppast::cpp_entity_index id;
@@ -88,6 +91,7 @@ namespace mia
 		}
 		parser.reset_error();
 	}
+
 	std::optional<cppast::cpp_standard> Generator::convertStandards(CppStandard standard)
 	{
 		static const std::unordered_map<CppStandard, cppast::cpp_standard> standardMapping = {
@@ -106,5 +110,15 @@ namespace mia
 			return {};
 
 		return it->second;
+	}
+
+	GeneratorModule::Ptr GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
+	{
+		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
+		if (funcAddr)
+		{
+			return funcAddr();
+		}
+		return nullptr;
 	}
 }
