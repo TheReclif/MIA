@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 try
 {
 	// Setup the tool's arguments.
-	std::vector<std::string> filesToProcess, includeDirs;
+	std::vector<std::string> filesToProcess, includeDirs, modules;
 	std::string outputPattern, cxxStd;
 
 	argumentum::argument_parser parser;
@@ -32,6 +32,9 @@ try
 	params
 		.add_parameter(outputPattern, "--output", "-o").metavar("<output_pattern>")
 		.help("Output pattern for the output files. Defaults to \"{}.mia.hpp\" where {} is a placeholder for the input file name").required(false).absent("{}.mia.hpp").nargs(1);
+	params
+		.add_parameter(modules, "--modules", "-m").metavar("<modules>")
+		.help("Modules to load alongside the default ones").required(false);
 	
 	config.registerOptions(params);
 
@@ -44,13 +47,30 @@ try
 		}
 		return 1;
 	}
+	
+	std::vector<std::unique_ptr<mia::DynamicLibrary>> dynamicLibs;
+	dynamicLibs.reserve(modules.size());
+ 	for (const auto& x : modules)
+	{
+		dynamicLibs.push_back(mia::DynamicLibraryFactory::create());
+		dynamicLibs.back()->load(x.c_str());
+	}
 
 	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), config);
 
 	app.registerModules({
 		std::make_shared<mia::modules::EnumConversionsModule>(),
 		std::make_shared<mia::modules::SerializationModule>()
-	});
+		});
+
+	for (const auto& x : dynamicLibs)
+	{
+		const auto miaModule = mia::GeneratorModule::loadFromLibrary(*x);
+		if (miaModule)
+		{
+			app.registerModule(miaModule);
+		}
+	}
 
 	if (!app.process())
 	{
