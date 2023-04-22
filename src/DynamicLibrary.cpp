@@ -21,6 +21,7 @@ public:
 		unload();
 		
 		handle = LoadLibraryA(name);
+		dllName = name;
 	}
 
 	virtual DummyFuncPtr getFuncAddress(const char* name) const override

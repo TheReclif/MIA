@@ -34,7 +34,7 @@ try
 		.help("Output pattern for the output files. Defaults to \"{}.mia.hpp\" where {} is a placeholder for the input file name").required(false).absent("{}.mia.hpp").nargs(1);
 	params
 		.add_parameter(modules, "--modules", "-m").metavar("<modules>")
-		.help("Modules to load alongside the default ones").required(false);
+		.help("Modules to load alongside the default ones").required(false).minargs(1);
 	
 	config.registerOptions(params);
 
@@ -47,7 +47,17 @@ try
 		}
 		return 1;
 	}
-	
+
+	for (const auto& x : modules)
+	{
+		std::cout << x << std::endl;
+	}
+	std::cout << "\n";
+	for (int x = 0; x < argc; ++x)
+	{
+		std::cout << argv[x] << std::endl;
+	}
+
 	std::vector<std::unique_ptr<mia::DynamicLibrary>> dynamicLibs;
 	dynamicLibs.reserve(modules.size());
  	for (const auto& x : modules)
