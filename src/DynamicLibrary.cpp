@@ -9,6 +9,7 @@ class WindowsDynamicLibrary
 	: public mia::DynamicLibrary
 {
 	HMODULE handle = nullptr;
+	std::string dllName;
 public:
 	virtual ~WindowsDynamicLibrary()
 	{
@@ -32,12 +33,18 @@ public:
 		return reinterpret_cast<DummyFuncPtr>(GetProcAddress(handle, name));
 	}
 
+	virtual std::string_view getName() const override
+	{
+		return dllName;
+	}
+
 	void unload()
 	{
 		if (handle)
 		{
 			FreeLibrary(handle);
 			handle = nullptr;
+			dllName.clear();
 		}
 	}
 };

@@ -119,6 +119,7 @@ namespace mia
 		{
 			return funcAddr();
 		}
+		spdlog::error("Unable to find export function (or failed to load the dynamic library) in module {}", lib.getName());
 		return nullptr;
 	}
 }

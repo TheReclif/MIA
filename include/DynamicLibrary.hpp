@@ -15,6 +15,7 @@ namespace mia
 
 		virtual void load(const char* name) = 0;
 		virtual DummyFuncPtr getFuncAddress(const char* name) const = 0;
+		virtual std::string_view getName() const = 0;
 	};
 
 	struct DynamicLibraryFactory
