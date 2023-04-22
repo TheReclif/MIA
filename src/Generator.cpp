@@ -53,14 +53,21 @@ namespace mia
 
 	void Generator::registerModule(const GeneratorModule::Ptr& module)
 	{
-		modules.emplace_back(module);
+		if (std::string_view(module->getVersion()) == MIA_VERSION)
+		{
+			modules.emplace_back(module);
+		}
+		else
+		{
+			spdlog::error("Mismatching versions for module {}, module version is {}, but mia version is {}", "PLACEHOLDER_UNIMPLEMENTED", module->getVersion(), MIA_VERSION);
+		}
 	}
 
 	void Generator::registerModules(const std::vector<GeneratorModule::Ptr>& modules)
 	{
 		this->modules.reserve(this->modules.size() + modules.size());
 		for (auto& module : modules)
-			this->modules.emplace_back(module);
+			registerModule(module);
 	}
 
 	void Generator::generate(std::ostream& outputStream, const std::string& targetFile)
