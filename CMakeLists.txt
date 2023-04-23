@@ -14,17 +14,17 @@ target_include_directories(utils INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
-add_library(mia-core)
+add_library(core)
 
-target_compile_features(mia-core PRIVATE cxx_std_17)
-target_link_libraries(mia-core PUBLIC utils cppast spdlog::spdlog spdlog::spdlog_header_only)
-target_include_directories(mia-core PRIVATE include)
-target_compile_definitions(mia-core PUBLIC MIA_VERSION="${CMAKE_PROJECT_VERSION}")
+target_compile_features(core PRIVATE cxx_std_17)
+target_link_libraries(core PUBLIC utils cppast spdlog::spdlog spdlog::spdlog_header_only)
+target_include_directories(core PRIVATE include)
+target_compile_definitions(core PUBLIC MIA_VERSION="${CMAKE_PROJECT_VERSION}")
 
 add_executable(mia Mia.cpp)
 
 target_compile_features(mia PRIVATE cxx_std_17)
-target_link_libraries(mia PRIVATE mia-core Argumentum::argumentum)
+target_link_libraries(mia PRIVATE core Argumentum::argumentum)
 target_include_directories(mia PRIVATE include)
 
 add_subdirectory(src)
@@ -46,7 +46,7 @@ configure_package_config_file(
 )
 
 install(TARGETS mia DESTINATION bin)
-install(TARGETS utils EXPORT miaTargets LIBRARY DESTINATION lib)
+install(TARGETS utils core cppast type_safe debug_assert _cppast_tiny_process _cppast_libclang tiny-process-library EXPORT miaTargets LIBRARY DESTINATION lib)
 install(EXPORT miaTargets DESTINATION lib/cmake/mia NAMESPACE mia::)
 install(FILES 
     "${PROJECT_BINARY_DIR}/miaConfigVersion.cmake"

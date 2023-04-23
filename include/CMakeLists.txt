@@ -4,7 +4,7 @@ target_sources(utils PRIVATE
 
 install(FILES MiaUtils.hpp Type.hpp AttributableBase.hpp DESTINATION include)
 
-target_sources(mia-core PRIVATE
+target_sources(core PRIVATE
 	StringUtils.hpp
 	Standard.hpp
 	CodeGenerator.hpp

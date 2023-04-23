@@ -1,4 +1,4 @@
-target_sources(mia-core PRIVATE
+target_sources(core PRIVATE
 	EnumConversions.hpp
 	Serialization.hpp
 )

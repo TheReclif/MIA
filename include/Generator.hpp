@@ -13,9 +13,9 @@
 #include <DynamicLibrary.hpp>
 
 #ifdef WIN32
-#define MiaExportModule(name) inline __declspec(dllexport) mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
+#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
 #else
-#define MiaExportModule(name) inline mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
+#define MiaExportModule(name) extern "C" inline mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
 #endif
 
 namespace mia
