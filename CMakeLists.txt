@@ -5,6 +5,10 @@ project(MIA VERSION 0.0.1 LANGUAGES CXX)
 find_package(Argumentum CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
+find_package(Git REQUIRED)
+
+execute_process(COMMAND "${GIT_EXECUTABLE}" apply ../fix_cppast_install.patch WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cppast" ERROR_QUIET)
+
 add_subdirectory(cppast)
 
 add_library(utils INTERFACE)
@@ -46,7 +50,9 @@ configure_package_config_file(
 )
 
 install(TARGETS mia DESTINATION bin)
-install(TARGETS utils core cppast type_safe debug_assert _cppast_tiny_process _cppast_libclang tiny-process-library EXPORT miaTargets LIBRARY DESTINATION lib)
+install(TARGETS utils core cppast type_safe debug_assert _cppast_tiny_process _cppast_libclang tiny-process-library EXPORT miaTargets LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include)
+# TODO: install cppast files to include/cppast
+#install(FILES )
 install(EXPORT miaTargets DESTINATION lib/cmake/mia NAMESPACE mia::)
 install(FILES 
     "${PROJECT_BINARY_DIR}/miaConfigVersion.cmake"
