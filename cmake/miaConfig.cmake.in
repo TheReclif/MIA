@@ -1,7 +1,9 @@
 @PACKAGE_INIT@
 
+include("${CMAKE_CURRENT_LIST_DIR}/../debug_assert/debug_assert-targets.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/miaPreqs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/miaTargets.cmake")
+
 include(CMakeFindDependencyMacro)
 
 find_dependency(Threads REQUIRED)

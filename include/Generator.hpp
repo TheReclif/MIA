@@ -7,10 +7,9 @@
 #include <vector>
 #include <memory>
 #include <string_view>
-#include <argumentum/argparse.h>
+#include <optional>
 
 #include <Standard.hpp>
-#include <DynamicLibrary.hpp>
 
 #ifdef WIN32
 #define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
@@ -18,8 +17,15 @@
 #define MiaExportModule(name) extern "C" inline mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
 #endif
 
+namespace argumentum
+{
+	class ParameterConfig;
+}
+
 namespace mia
 {
+	struct DynamicLibrary;
+
 	class GeneratorConfig
 	{
 	public:

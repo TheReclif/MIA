@@ -57,7 +57,7 @@ configure_package_config_file(
 )
 
 install(TARGETS mia DESTINATION bin)
-install(TARGETS cppast type_safe debug_assert _cppast_tiny_process _cppast_libclang tiny-process-library EXPORT miaPreqs LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include/cppast)
+install(TARGETS cppast type_safe _cppast_tiny_process _cppast_libclang tiny-process-library EXPORT miaPreqs LIBRARY DESTINATION lib)
 install(TARGETS utils core EXPORT miaTargets LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include)
 # TODO: install cppast files to include/cppast
 #install(FILES )

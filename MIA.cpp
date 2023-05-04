@@ -5,6 +5,7 @@
 
 #include <App.hpp>
 #include <Standard_Gen.hpp>
+#include <DynamicLibrary.hpp>
 
 #include <modules/EnumConversions.hpp>
 #include <modules/Serialization.hpp>
