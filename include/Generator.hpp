@@ -2,6 +2,8 @@
 #ifndef MIA_GENERATOR_INCLUDED
 #define MIA_GENERATOR_INCLUDED
 
+#include <core_export.h>
+
 #include <iostream>
 #include <cppast/libclang_parser.hpp>
 #include <vector>
@@ -26,7 +28,7 @@ namespace mia
 {
 	struct DynamicLibrary;
 
-	class GeneratorConfig
+	class CORE_EXPORT GeneratorConfig
 	{
 	public:
 		int threadCount = -1;
@@ -36,7 +38,7 @@ namespace mia
 		void registerOptions(argumentum::ParameterConfig& params);
 	};
 
-	class GeneratorModule
+	class CORE_EXPORT GeneratorModule
 	{
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
@@ -51,7 +53,7 @@ namespace mia
 		static Ptr loadFromLibrary(const DynamicLibrary& lib);
 	};
 
-	class Generator
+	class CORE_EXPORT Generator
 	{
 	public:
 		Generator(const mia::GeneratorConfig& config, const std::vector<std::string>& includeDirs);

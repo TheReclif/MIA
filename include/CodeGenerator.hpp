@@ -2,12 +2,14 @@
 #ifndef CODEGENERATOR_INCLUDED
 #define CODEGENERATOR_INCLUDED
 
+#include <core_export.h>
+
 #include <cppast/code_generator.hpp>         // for generate_code()
 #include <cppast/cpp_entity.hpp>
 
 namespace mia
 {
-	class CodeGenerator
+	class CORE_EXPORT CodeGenerator
 		: public cppast::code_generator
 	{
     private:

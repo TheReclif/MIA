@@ -1,6 +1,7 @@
 #include <App.hpp>
 #include <CodeGenerator.hpp>
 
+#include <argumentum/argparse.h>
 #include <spdlog/spdlog.h>
 
 #include <cppast/cpp_entity_kind.hpp>        // for the cpp_entity_kind definition
