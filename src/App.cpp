@@ -84,6 +84,12 @@ namespace mia
 
 	void App::registerModule(const GeneratorModule::Ptr& module)
 	{
+		ownedModules.emplace_back(module);
+		modules.emplace_back(module.get());
+	}
+
+	void App::registerModule(GeneratorModule* module)
+	{
 		modules.emplace_back(module);
 	}
 
@@ -91,7 +97,7 @@ namespace mia
 	{
 		this->modules.reserve(this->modules.size() + modules.size());
 		for (auto& module : modules)
-			this->modules.emplace_back(module);
+			registerModule(module);
 	}
 
 	std::optional<std::string_view> App::getNextFileToProcess()

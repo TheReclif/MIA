@@ -1,3 +1,4 @@
+#include "Generator.hpp"
 #include <Generator.hpp>
 #include <optional>
 #include <filesystem>
@@ -53,8 +54,8 @@ namespace mia
 			compileConfig.add_include_dir(x);
 		}
 	}
-
-	void Generator::registerModule(const GeneratorModule::Ptr& module)
+	
+	void Generator::registerModule(GeneratorModule* module)
 	{
 		if (std::string_view(module->getVersion()) == MIA_VERSION)
 		{
@@ -66,7 +67,7 @@ namespace mia
 		}
 	}
 
-	void Generator::registerModules(const std::vector<GeneratorModule::Ptr>& modules)
+	void Generator::registerModules(const std::vector<GeneratorModule*>& modules)
 	{
 		this->modules.reserve(this->modules.size() + modules.size());
 		for (auto& module : modules)
@@ -122,7 +123,7 @@ namespace mia
 		return it->second;
 	}
 
-	GeneratorModule::Ptr GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
+	GeneratorModule* GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
 	{
 		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
 		if (funcAddr)

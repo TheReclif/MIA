@@ -14,9 +14,9 @@
 #include <Standard.hpp>
 
 #ifdef WIN32
-#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
+#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule() { static name instance; return &instance; }
 #else
-#define MiaExportModule(name) extern "C" inline mia::GeneratorModule::Ptr mia_exportModule() { return std::make_shared<name>(); }
+#define MiaExportModule(name) extern "C" inline mia::GeneratorModule* mia_exportModule() { static name instance; return &instance; }
 #endif
 
 namespace argumentum
@@ -42,7 +42,7 @@ namespace mia
 	{
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
-		using CreateFunc = Ptr(*)();
+		using CreateFunc = GeneratorModule*(*)();
 
 		virtual ~GeneratorModule() = default;
 
@@ -50,23 +50,23 @@ namespace mia
 		[[nodiscard]]
 		virtual const char* getVersion() const = 0;
 
-		static Ptr loadFromLibrary(const DynamicLibrary& lib);
+		static GeneratorModule* loadFromLibrary(const DynamicLibrary& lib);
 	};
 
 	class CORE_EXPORT Generator
 	{
 	public:
 		Generator(const mia::GeneratorConfig& config, const std::vector<std::string>& includeDirs);
-
-		void registerModule(const GeneratorModule::Ptr& module);
-		void registerModules(const std::vector<GeneratorModule::Ptr>& modules);
+		
+		void registerModule(GeneratorModule* module);
+		void registerModules(const std::vector<GeneratorModule*>& modules);
 
 		void generate(std::ostream& outputStream, const std::string& targetFile);
 	private:
 		static std::optional<cppast::cpp_standard> convertStandards(CppStandard standard);
 
 		cppast::libclang_compile_config compileConfig;
-		std::vector<GeneratorModule::Ptr> modules;
+		std::vector<GeneratorModule*> modules;
 		cppast::libclang_parser parser;
 
 		bool dry;

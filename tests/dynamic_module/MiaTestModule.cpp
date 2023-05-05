@@ -14,9 +14,11 @@ class TestModule
 	{
 		cppast::visit(source, [](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool
 			{
-				std::cout << e.name() << std::endl;
+				std::cout << "[dynamic_module] " << e.name() << std::endl;
 
 				return true;
 			});
 	}
 };
+
+MiaExportModule(TestModule)

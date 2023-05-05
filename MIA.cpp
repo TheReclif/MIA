@@ -49,16 +49,6 @@ try
 		return 1;
 	}
 
-	for (const auto& x : modules)
-	{
-		std::cout << x << std::endl;
-	}
-	std::cout << "\n";
-	for (int x = 0; x < argc; ++x)
-	{
-		std::cout << argv[x] << std::endl;
-	}
-
 	std::vector<std::unique_ptr<mia::DynamicLibrary>> dynamicLibs;
 	dynamicLibs.reserve(modules.size());
  	for (const auto& x : modules)

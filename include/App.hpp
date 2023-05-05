@@ -34,6 +34,7 @@ namespace mia
 
 		bool process();
 		void registerModule(const GeneratorModule::Ptr& module);
+		void registerModule(GeneratorModule* module);
 		void registerModules(const std::vector<GeneratorModule::Ptr>& modules);
 	private:
 		std::optional<std::string_view> getNextFileToProcess();
@@ -44,7 +45,8 @@ namespace mia
 		const std::string pattern;
 		std::atomic<unsigned int> currentProcessedFile;
 		GeneratorConfig config;
-		std::vector<std::shared_ptr<GeneratorModule>> modules;
+		std::vector<GeneratorModule::Ptr> ownedModules;
+		std::vector<GeneratorModule*> modules;
 	};
 }
 
