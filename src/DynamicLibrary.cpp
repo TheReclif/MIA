@@ -16,12 +16,17 @@ public:
 		unload();
 	}
 
-	virtual void load(const char* name) override
+	virtual bool load(const char* name) override
 	{
 		unload();
 		
 		handle = LoadLibraryA(name);
+		if (!handle)
+		{
+			return false;
+		}
 		dllName = name;
+		return true;
 	}
 
 	virtual DummyFuncPtr getFuncAddress(const char* name) const override

@@ -15,7 +15,7 @@ namespace mia
 
 		virtual ~DynamicLibrary() = default;
 
-		virtual void load(const char* name) = 0;
+		virtual bool load(const char* name) = 0;
 		virtual DummyFuncPtr getFuncAddress(const char* name) const = 0;
 		virtual std::string_view getName() const = 0;
 	};
