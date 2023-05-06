@@ -47,7 +47,7 @@ namespace GLOWE
 		: public mia::detail::AutoRegisterChild<TemplatedTest<T>>
 	{
 	public:
-		[[dupaaaaa]]
+		[[test]]
 		T xxxxxx;
 	public:
 		TemplatedTest()
