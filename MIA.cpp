@@ -1,5 +1,7 @@
 #include <argumentum/argparse.h>
 
+#include <spdlog/spdlog.h>
+
 #include <vector>
 #include <string>
 
@@ -54,7 +56,11 @@ try
  	for (const auto& x : modules)
 	{
 		dynamicLibs.push_back(mia::DynamicLibraryFactory::create());
-		dynamicLibs.back()->load(x.c_str());
+		if (!dynamicLibs.back()->load(x.c_str()))
+		{
+			spdlog::error("Failed to load module {}", x);
+			return 1;
+		}
 	}
 
 	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), config);
