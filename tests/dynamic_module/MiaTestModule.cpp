@@ -3,13 +3,8 @@
 #include <cppast/visitor.hpp>
 
 class TestModule
-	: public mia::GeneratorModule
+	: public mia::GeneratorModuleBase
 {
-	const char* getVersion() const override
-	{
-		return MIA_VERSION;
-	}
-
 	void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) override
 	{
 		cppast::visit(source, [](const cppast::cpp_entity& e, cppast::visitor_info info) -> bool

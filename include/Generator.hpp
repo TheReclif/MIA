@@ -53,6 +53,20 @@ namespace mia
 		static GeneratorModule* loadFromLibrary(const DynamicLibrary& lib);
 	};
 
+	class GeneratorModuleBase
+		: public GeneratorModule
+	{
+	public:
+		GeneratorModuleBase() = default;
+		~GeneratorModuleBase() override = default;
+
+		[[nodiscard]]
+		const char* getVersion() const override
+		{
+			return MIA_VERSION;
+		}
+	};
+
 	class CORE_EXPORT Generator
 	{
 	public:
