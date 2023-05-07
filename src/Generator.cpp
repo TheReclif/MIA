@@ -1,4 +1,3 @@
-#include "Generator.hpp"
 #include <Generator.hpp>
 #include <optional>
 #include <filesystem>
@@ -29,7 +28,7 @@ namespace mia
 			.metavar("<std>")
 			.help("C++ standard to compile against")
 			.required(false).absent(CppStandard::Cpp11).nargs(1)
-			.choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" })
+			.choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" }) //TODO: get from enum
 			.action([](auto& target, const std::string& value)
 				{
 					target = to_enum<CppStandard>(value);
@@ -38,9 +37,12 @@ namespace mia
 			.add_parameter(dry, "--dry-run", "-d")
 			.help("Program in dry run will not modify any file and only print information about what it would do.")
 			.required(false).absent(false);
+		params
+			.add_parameter(verbose, "--verbose", "-v")
+			.required(false).absent(false);
 	}
 
-	Generator::Generator(const GeneratorConfig& config, const std::vector<std::string>& includeDirs) : dry(config.dry)
+	Generator::Generator(const GeneratorConfig& config, const std::vector<std::string>& includeDirs) : dry(config.dry), verbose(config.verbose)
 	{
 		const auto compileStandard = convertStandards(config.cppStandard);
 		if (!compileStandard)
@@ -77,7 +79,6 @@ namespace mia
 	void Generator::generate(std::ostream& outputStream, const std::string& targetFile)
 	{
 		cppast::cpp_entity_index id;
-		//TODO: check if file exists
 		try
 		{
 			auto cppFile = parser.parse(id, targetFile, compileConfig);
@@ -86,14 +87,17 @@ namespace mia
 				spdlog::error("Unable to parse {}", targetFile);
 				throw std::exception("Parse error");
 			}
-			spdlog::info("{} parsed", targetFile);
+
+			if (verbose)
+				spdlog::info("{} parsed", targetFile);
 
 			for (auto module : modules)
 			{
 				module->extractInfo(outputStream, *cppFile);
 			}
 
-			spdlog::info("Info from {} extracted", targetFile);
+			if (verbose)
+				spdlog::info("Info from {} extracted", targetFile);
 		}
 		catch (const std::exception& e)
 		{

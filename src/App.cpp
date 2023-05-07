@@ -132,6 +132,12 @@ namespace mia
 			
 			const auto path = std::filesystem::path(filePath);
 
+			if (!std::filesystem::exists(path))
+			{
+				spdlog::error("Input file not found: {}", filePath);
+				throw std::exception("File not found");
+			}
+
 			const auto fileStem = path.stem().string();
 			const auto fileName = path.filename().string();
 			
@@ -163,13 +169,21 @@ namespace mia
 			const auto fileStem = path.stem().string();
 			const auto fileName = path.filename().string();
 
-			if (!config.dry)
-				outFile.open(fmt::format(pattern, fileStem));
+			const auto targetPath = fmt::format(pattern, fileStem);
 
-			std::ostream& outStream = outFile ? outFile : std::cout;
-
-			if (!config.dry)
-				outStream << file.content;
+			if (config.dry)
+			{
+				if (config.verbose)
+				{
+					spdlog::info("Generated {}:", targetPath);
+					std::cout << file.content;
+				}
+			}
+			else
+			{
+				outFile.open(targetPath);
+				outFile << file.content;
+			}
 		}
 	}
 }

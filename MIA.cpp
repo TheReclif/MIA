@@ -6,6 +6,7 @@
 #include <string>
 
 #include <App.hpp>
+#include <StringUtils.hpp>
 #include <Standard_Gen.hpp>
 #include <DynamicLibrary.hpp>
 
@@ -18,6 +19,7 @@ try
 	// Setup the tool's arguments.
 	std::vector<std::string> filesToProcess, includeDirs, modules;
 	std::string outputPattern, cxxStd;
+	bool verbose;
 
 	argumentum::argument_parser parser;
 	auto params = parser.params();
@@ -63,6 +65,13 @@ try
 		}
 	}
 
+	if (config.verbose)
+	{
+		spdlog::info("Modules loaded: {}", mia::text::implode(modules, ", "));
+		spdlog::info("Included directories: {}", mia::text::implode(includeDirs, ", "));
+		spdlog::info("Output pattern: {}", outputPattern);
+	}
+
 	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), config);
 
 	app.registerModules({
@@ -83,6 +92,9 @@ try
 	{
 		return 1;
 	}
+
+	if (config.verbose)
+		spdlog::info("Done");
 
 	return 0;
 }

@@ -34,6 +34,7 @@ namespace mia
 		int threadCount = -1;
 		CppStandard cppStandard = CppStandard::Cpp11;
 		bool dry = false;
+		bool verbose = false;
 
 		void registerOptions(argumentum::ParameterConfig& params);
 	};
@@ -83,7 +84,8 @@ namespace mia
 		std::vector<GeneratorModule*> modules;
 		cppast::libclang_parser parser;
 
-		bool dry;
+		const bool dry;
+		const bool verbose;
 	};
 }
 
