@@ -19,7 +19,6 @@ try
 	// Setup the tool's arguments.
 	std::vector<std::string> filesToProcess, includeDirs, modules;
 	std::string outputPattern, cxxStd;
-	bool verbose;
 
 	argumentum::argument_parser parser;
 	auto params = parser.params();
