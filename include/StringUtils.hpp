@@ -2,6 +2,8 @@
 #ifndef MIA_STRING_UTILS_INCLUDED
 #define MIA_STRING_UTILS_INCLUDED
 
+#include <core_export.h>
+
 #include <string>
 #include <vector>
 #include <functional>
@@ -9,11 +11,11 @@
 
 namespace mia::text
 {
-	std::string implode(const std::vector<std::string>& array, const std::string& delim);
+	CORE_EXPORT std::string implode(const std::vector<std::string>& array, const std::string& delim);
 
-	std::string pad(const std::string& str, int count, char delim);
+	CORE_EXPORT std::string pad(const std::string& str, int count, char delim);
 
-	std::string toUpper(const std::string& str);
+	CORE_EXPORT std::string toUpper(const std::string& str);
 
 	template<typename T> std::vector<std::string> process(const std::vector<T>& array, const std::function<std::string(const T&)>& processor)
 	{

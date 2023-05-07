@@ -1,29 +1,63 @@
 @PACKAGE_INIT@
 
+include("${CMAKE_CURRENT_LIST_DIR}/../debug_assert/debug_assert-targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/miaPreqs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/miaTargets.cmake")
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(Threads REQUIRED)
+
 check_required_components("@PROJECT_NAME@")
 
-set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
+#set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
+find_program(mia_executable_path mia PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../bin)
 
 function(miagen target)
+	cmake_parse_arguments(PARSE_ARGV 1 PARSED_ARGS
+		""
+		""
+		"MODULES"
+	)
 	get_target_property(mia_fetched_sources ${target} SOURCES)
 	get_target_property(mia_fetched_sources_dir ${target} SOURCE_DIR)
+	get_target_property(mia_fetched_include_dirs ${target} INCLUDE_DIRECTORIES)
+	get_target_property(mia_cxx_standard ${target} CXX_STANDARD)
+	if (NOT mia_cxx_standard)
+		set(mia_cxx_standard 17)
+	endif ()
+	string(PREPEND mia_cxx_standard "c++")
+
+	list(JOIN mia_fetched_include_dirs " " mia_fetched_include_dirs)
+
 	list(FILTER mia_fetched_sources INCLUDE REGEX "\\.(hpp|h|hxx)$")
+
+	set(mia_output_pattern "${CMAKE_CURRENT_BINARY_DIR}/{}.mia.hpp")
+
 	foreach(mia_header_file IN LISTS mia_fetched_sources)
 		get_filename_component(mia_file_name ${mia_header_file} NAME_WE)
 		set(mia_input_file "${mia_fetched_sources_dir}/${mia_header_file}")
 		set(mia_output_file "${CMAKE_CURRENT_BINARY_DIR}/${mia_file_name}.mia.hpp")
 		
-		set(mia_command_bundle "${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}")
-		
-		add_custom_command(OUTPUT ${mia_output_file}
-			COMMAND ${mia_executable_path} -f ${mia_input_file} -o ${mia_output_file}
-			DEPENDS ${mia_input_file}
-		)
+		if (PARSED_ARGS_MODULES)
+			add_custom_command(OUTPUT ${mia_output_file}
+				COMMAND ${mia_executable_path} --std ${mia_cxx_standard} -f ${mia_input_file} -o ${mia_output_pattern} -m "${PARSED_ARGS_MODULES}" -i "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>"
+				COMMAND_EXPAND_LISTS
+				DEPENDS ${mia_input_file}
+			)
+		else()
+			add_custom_command(OUTPUT ${mia_output_file}
+				COMMAND ${mia_executable_path} --std ${mia_cxx_standard} -f ${mia_input_file} -o ${mia_output_pattern} -i "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>"
+				COMMAND_EXPAND_LISTS
+				DEPENDS ${mia_input_file}
+			)
+		endif()
 		
 		set(mia_output_file_target "mia_output_header_${target}_${mia_file_name}")
 		add_custom_target(${mia_output_file_target} ALL DEPENDS ${mia_output_file})
 		add_dependencies(${target} ${mia_output_file_target})
 	endforeach()
 	target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+	set("${target}_MIA_INCLUDE_DIR" "${CMAKE_CURRENT_BINARY_DIR}")
+	return(PROPAGATE "${target}_MIA_INCLUDE_DIR")
 endfunction()

@@ -1,14 +1,18 @@
+#include "Generator.hpp"
 #include <Generator.hpp>
 #include <optional>
 #include <filesystem>
+
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
+#include <argumentum/argparse.h>
 
 #include <cppast/visitor.hpp>
 #include <cppast/cpp_enum.hpp>
 
 #include <StringUtils.hpp>
 
+#include <DynamicLibrary.hpp>
 #include <Standard_Gen.hpp>
 
 namespace mia
@@ -50,16 +54,26 @@ namespace mia
 			compileConfig.add_include_dir(x);
 		}
 	}
-	void Generator::registerModule(const GeneratorModule::Ptr& module)
+	
+	void Generator::registerModule(GeneratorModule* module)
 	{
-		modules.emplace_back(module);
+		if (std::string_view(module->getVersion()) == MIA_VERSION)
+		{
+			modules.emplace_back(module);
+		}
+		else
+		{
+			spdlog::error("Mismatching versions for module {}, module version is {}, but mia version is {}", "PLACEHOLDER_UNIMPLEMENTED", module->getVersion(), MIA_VERSION);
+		}
 	}
-	void Generator::registerModules(const std::vector<GeneratorModule::Ptr>& modules)
+
+	void Generator::registerModules(const std::vector<GeneratorModule*>& modules)
 	{
 		this->modules.reserve(this->modules.size() + modules.size());
 		for (auto& module : modules)
-			this->modules.emplace_back(module);
+			registerModule(module);
 	}
+
 	void Generator::generate(std::ostream& outputStream, const std::string& targetFile)
 	{
 		cppast::cpp_entity_index id;
@@ -70,7 +84,7 @@ namespace mia
 			if (parser.error())
 			{
 				spdlog::error("Unable to parse {}", targetFile);
-				return;
+				throw std::exception("Parse error");
 			}
 			spdlog::info("{} parsed", targetFile);
 
@@ -81,12 +95,14 @@ namespace mia
 
 			spdlog::info("Info from {} extracted", targetFile);
 		}
-		catch (std::exception e)
+		catch (const std::exception& e)
 		{
 			spdlog::error("{}", e.what());
+			throw;
 		}
 		parser.reset_error();
 	}
+
 	std::optional<cppast::cpp_standard> Generator::convertStandards(CppStandard standard)
 	{
 		static const std::unordered_map<CppStandard, cppast::cpp_standard> standardMapping = {
@@ -105,5 +121,16 @@ namespace mia
 			return {};
 
 		return it->second;
+	}
+
+	GeneratorModule* GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
+	{
+		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
+		if (funcAddr)
+		{
+			return funcAddr();
+		}
+		spdlog::error("Unable to find export function in module {}", lib.getName());
+		return nullptr;
 	}
 }
