@@ -53,6 +53,7 @@ try
 	}
 
 	std::vector<std::unique_ptr<mia::DynamicLibrary>> dynamicLibs;
+
 	dynamicLibs.reserve(modules.size());
  	for (const auto& x : modules)
 	{
@@ -80,12 +81,16 @@ try
 		std::make_shared<mia::modules::SerializationModule>()
 		});
 
-	for (const auto& x : dynamicLibs)
+	for (std::size_t x = 0; x < dynamicLibs.size(); ++x)
 	{
-		const auto miaModule = mia::GeneratorModule::loadFromLibrary(*x);
+		const auto miaModule = mia::GeneratorModule::loadFromLibrary(*dynamicLibs[x]);
 		if (miaModule)
 		{
 			app.registerModule(miaModule);
+		}
+		else
+		{
+			spdlog::error("Version mismatch for module {}, current MIA version is {}", modules[x], MIA_VERSION);
 		}
 	}
 

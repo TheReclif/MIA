@@ -94,9 +94,4 @@ namespace mia::modules
 				return true;
 			});
 	}
-
-	const char* EnumConversionsModule::getVersion() const
-	{
-		return MIA_VERSION;
-	}
 }

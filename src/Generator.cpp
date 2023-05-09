@@ -72,13 +72,9 @@ namespace mia
 	
 	void Generator::registerModule(GeneratorModule* module)
 	{
-		if (std::string_view(module->getVersion()) == MIA_VERSION)
+		if (module)
 		{
 			modules.emplace_back(module);
-		}
-		else
-		{
-			spdlog::error("Mismatching versions for module {}, module version is {}, but mia version is {}", "PLACEHOLDER_UNIMPLEMENTED", module->getVersion(), MIA_VERSION);
 		}
 	}
 
@@ -145,7 +141,7 @@ namespace mia
 		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
 		if (funcAddr)
 		{
-			return funcAddr();
+			return funcAddr(MIA_VERSION);
 		}
 		spdlog::error("Unable to find export function in module {}", lib.getName());
 		return nullptr;

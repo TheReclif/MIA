@@ -14,9 +14,9 @@
 #include <Standard.hpp>
 
 #ifdef WIN32
-#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule() { static name instance; return &instance; }
+#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule(const char* ver) { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; }
 #else
-#define MiaExportModule(name) extern "C" inline mia::GeneratorModule* mia_exportModule() { static name instance; return &instance; }
+#define MiaExportModule(name) extern "C" inline mia::GeneratorModule* mia_exportModule() { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; }
 #endif
 
 namespace argumentum
@@ -45,29 +45,13 @@ namespace mia
 	{
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
-		using CreateFunc = GeneratorModule*(*)();
+		using CreateFunc = GeneratorModule*(*)(const char*);
 
 		virtual ~GeneratorModule() = default;
 
 		virtual void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) = 0;
-		[[nodiscard]]
-		virtual const char* getVersion() const = 0;
 
 		static GeneratorModule* loadFromLibrary(const DynamicLibrary& lib);
-	};
-
-	class GeneratorModuleBase
-		: public GeneratorModule
-	{
-	public:
-		GeneratorModuleBase() = default;
-		~GeneratorModuleBase() override = default;
-
-		[[nodiscard]]
-		const char* getVersion() const override
-		{
-			return MIA_VERSION;
-		}
 	};
 
 	class CORE_EXPORT Generator
