@@ -14,9 +14,11 @@
 #include <Standard.hpp>
 
 #ifdef WIN32
-#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule(const char* ver) { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; }
+#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule(const char* ver) { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; } \
+extern "C" inline __declspec(dllexport) const char* mia_getVersion() { return MIA_VERSION; }
 #else
 #define MiaExportModule(name) extern "C" inline mia::GeneratorModule* mia_exportModule() { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; }
+extern "C" inline const char* mia_getVersion() { return MIA_VERSION; }
 #endif
 
 namespace argumentum
@@ -46,6 +48,7 @@ namespace mia
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
 		using CreateFunc = GeneratorModule*(*)(const char*);
+		using GetVersionFunc = const char*(*)();
 
 		virtual ~GeneratorModule() = default;
 
