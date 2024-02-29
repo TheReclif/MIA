@@ -42,7 +42,7 @@ namespace mia
 			.help("Adds verbose logging.")
 			.required(false).absent(false);
 		params
-			.add_parameter(textOutput, "--text", "-t")
+			.add_parameter(textOutput, "--text", "-$")
 			.help("Output content of files to stdout instead of files. Segments begin with --<path>-- and end with --end--.")
 			.required(false).absent(false);
 	}
