@@ -42,7 +42,7 @@ try
 		.help("Modules to load alongside the default ones.").required(false).minargs(1);
 	params
 		.add_parameter(showConfig, "--show-config", "-?").metavar("<show_config>")
-		.help("Show config specified to MIA. Usefull for debugging the configuration.").required(false).absent("false");
+		.help("Show config specified to MIA. Usefull for debugging the configuration.").required(false).absent(false);
 
 	config.registerOptions(params);
 
