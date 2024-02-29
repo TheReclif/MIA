@@ -10,7 +10,7 @@ find_dependency(Threads REQUIRED)
 
 check_required_components("@PROJECT_NAME@")
 
-option(mia_verbose "Enables verbose logging for MIA" false)
+option(mia_verbose "Enables verbose logging for MIA" OFF)
 
 #set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
 find_program(mia_executable_path mia PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../bin)

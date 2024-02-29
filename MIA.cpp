@@ -19,6 +19,7 @@ try
 	// Setup the tool's arguments.
 	std::vector<std::string> filesToProcess, includeDirs, modules;
 	std::string outputPattern, cxxStd;
+	bool showConfig;
 
 	argumentum::argument_parser parser;
 	auto params = parser.params();
@@ -29,17 +30,20 @@ try
 
 	params
 		.add_parameter(filesToProcess, "--files", "-f").minargs(1).metavar("<files>")
-		.help("Files to process").required(true);
+		.help("Files to process.").required(true);
 	params
 		.add_parameter(includeDirs, "--includes", "-i").minargs(1).metavar("<include_dirs>")
-		.help("Include directories").required(false);
+		.help("Include directories.").required(false);
 	params
 		.add_parameter(outputPattern, "--output", "-o").metavar("<output_pattern>")
-		.help("Output pattern for the output files. Defaults to \"{}.mia.hpp\" where {} is a placeholder for the input file name").required(false).absent("{}.mia.hpp").nargs(1);
+		.help("Output pattern for the output files. Defaults to \"{}.mia.hpp\" where {} is a placeholder for the input file name.").required(false).absent("{}.mia.hpp").nargs(1);
 	params
 		.add_parameter(modules, "--modules", "-m").metavar("<modules>")
-		.help("Modules to load alongside the default ones").required(false).minargs(1);
-	
+		.help("Modules to load alongside the default ones.").required(false).minargs(1);
+	params
+		.add_parameter(showConfig, "--show-config", "-?").metavar("<show_config>")
+		.help("Show config specified to MIA. Usefull for debugging the configuration.").required(false).absent("false");
+
 	config.registerOptions(params);
 
 	auto res = parser.parse_args(argc, argv);
@@ -64,11 +68,13 @@ try
 		}
 	}
 
-	if (config.verbose)
+	if (showConfig)
 	{
 		spdlog::info("Modules loaded: {}", mia::text::implode(modules, ", "));
 		spdlog::info("Included directories: {}", mia::text::implode(includeDirs, ", "));
+		spdlog::info("Input files: {}", mia::text::implode(filesToProcess, ", "));
 		spdlog::info("Output pattern: {}", outputPattern);
+		config.log();
 	}
 
 	mia::App app(std::move(filesToProcess), std::move(includeDirs), std::move(outputPattern), config);

@@ -35,8 +35,10 @@ namespace mia
 		CppStandard cppStandard = CppStandard::Cpp11;
 		bool dry = false;
 		bool verbose = false;
+		bool textOutput;
 
 		void registerOptions(argumentum::ParameterConfig& params);
+		void log() const;
 	};
 
 	class CORE_EXPORT GeneratorModule

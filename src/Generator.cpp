@@ -39,7 +39,20 @@ namespace mia
 			.required(false).absent(false);
 		params
 			.add_parameter(verbose, "--verbose", "-v")
+			.help("Adds verbose logging.")
 			.required(false).absent(false);
+		params
+			.add_parameter(textOutput, "--text", "-t")
+			.help("Output content of files to stdout instead of files. Segments begin with --<path>-- and end with --end--.")
+			.required(false).absent(false);
+	}
+	void GeneratorConfig::log() const
+	{
+		spdlog::info("Verbose: {}", verbose);
+		spdlog::info("Dry: {}", dry);
+		spdlog::info("Text: {}", textOutput);
+		spdlog::info("Cpp: {}", to_string(cppStandard));
+		spdlog::info("Threads: {}", threadCount);
 	}
 
 	Generator::Generator(const GeneratorConfig& config, const std::vector<std::string>& includeDirs) : dry(config.dry), verbose(config.verbose)
