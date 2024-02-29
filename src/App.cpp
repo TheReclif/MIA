@@ -151,13 +151,11 @@ namespace mia
 			
 			std::ostringstream outStream;
 
-			if (!config.dry)
-				outStream << fmt::format(headerStartPattern, text::toUpper(fileStem), fileName);
+			outStream << fmt::format(headerStartPattern, text::toUpper(fileStem), fileName);
 
 			generator.generate(outStream, filePath);
 
-			if (!config.dry)
-				outStream << headerEnd;
+			outStream << headerEnd;
 
 			output.emplace_back(File{ path, outStream.str() });
 		}

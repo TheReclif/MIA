@@ -22,7 +22,7 @@ namespace mia
 			.add_parameter(threadCount, "--threads", "-t")
 			.metavar("<threads>")
 			.help("How many threads to start")
-			.required(false).absent(-1).nargs(1);
+			.required(false).absent(0).nargs(1);
 		params
 			.add_parameter(cppStandard, "--std")
 			.metavar("<std>")

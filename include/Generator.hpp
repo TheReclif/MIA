@@ -31,11 +31,11 @@ namespace mia
 	class CORE_EXPORT GeneratorConfig
 	{
 	public:
-		int threadCount = -1;
+		int threadCount = 0;
 		CppStandard cppStandard = CppStandard::Cpp11;
 		bool dry = false;
 		bool verbose = false;
-		bool textOutput;
+		bool textOutput = false;
 
 		void registerOptions(argumentum::ParameterConfig& params);
 		void log() const;
