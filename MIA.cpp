@@ -49,10 +49,6 @@ try
 	auto res = parser.parse_args(argc, argv);
 	if (!res)
 	{
-		for (const auto& x : res.errors)
-		{
-			x.describeError(std::cout);
-		}
 		return 1;
 	}
 
@@ -103,8 +99,8 @@ try
 
 	return 0;
 }
-catch (...)
+catch (std::exception e)
 {
-	std::cout << "Unexpected exception" << std::endl;
+	spdlog::error("Unexpected error");
 	return 1;
 }
