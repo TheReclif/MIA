@@ -32,7 +32,7 @@ template<> inline {0} to_enum(const std::string& str) {{
 static const auto to_enum_item_pattern = "\t\t{{ {}, {} }}";
 
 static const auto to_list_main_pattern = R"TXT(
-template<> inline std::vector<{0}> enum_to_list(const {0}& v) {{
+template<> inline std::vector<{0}> enum_to_list() {{
 	return {{
 {1}
 	}};

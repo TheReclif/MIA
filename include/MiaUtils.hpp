@@ -91,7 +91,7 @@ template<typename T> T to_enum(const std::string&)
 	throw std::logic_error("Enum conversion for given type not implemented.");
 }
 
-template<typename T> std::vector<T> enum_to_list(const T&)
+template<typename T> std::vector<T> enum_to_list()
 {
 	throw std::logic_error("Enum listing for given type not implemented.");
 }

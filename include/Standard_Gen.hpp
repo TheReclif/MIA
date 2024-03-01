@@ -36,7 +36,7 @@ template<> inline mia::CppStandard to_enum(const std::string& str) {
 	return it->second;
 };
 
-template<> inline std::vector<mia::CppStandard> enum_to_list(const mia::CppStandard& v) {
+template<> inline std::vector<mia::CppStandard> enum_to_list() {
 	return {
 		mia::CppStandard::Cpp98,
 		mia::CppStandard::Cpp03,

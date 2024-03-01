@@ -18,6 +18,11 @@ namespace mia
 {
 	void GeneratorConfig::registerOptions(argumentum::ParameterConfig& params)
 	{
+		auto standards = enum_to_list<CppStandard>();
+		std::vector<std::string> standardNames;
+		for (const auto& s : standards)
+			standardNames.emplace_back(to_string(s));
+
 		params
 			.add_parameter(threadCount, "--threads", "-t")
 			.metavar("<threads>")
@@ -28,11 +33,8 @@ namespace mia
 			.metavar("<std>")
 			.help("C++ standard to compile against")
 			.required(false).absent(CppStandard::Cpp11).nargs(1)
-			.choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" }) //TODO: get from enum
-			.action([](auto& target, const std::string& value)
-				{
-					target = to_enum<CppStandard>(value);
-				});
+			.choices(standardNames)
+			.action([](auto& target, const std::string& value) { target = to_enum<CppStandard>(value); });
 		params
 			.add_parameter(dry, "--dry-run", "-d")
 			.help("Program in dry run will not modify any file and only print information about what it would do.")
