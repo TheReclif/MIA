@@ -147,7 +147,7 @@ namespace mia
 
 		const char* ver = getVer ? getVer() : nullptr;
 
-		if (!ver || std::string(MIA_VERSION) != ver)
+		if (!ver || std::string_view(MIA_VERSION) != ver)
 			throw VersionError(ver);
 
 		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
