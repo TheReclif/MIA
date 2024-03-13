@@ -152,12 +152,12 @@ namespace mia
 
 		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
 		
-		if (funcAddr)
+		if (!funcAddr)
 			throw LoadError(fmt::format("Unable to find export function in module {}", lib.getName()));
 
-		const auto res = funcAddr(MIA_VERSION);
+		auto res = funcAddr(MIA_VERSION);
 
-		if (res == nullptr)
+		if (!res)
 			throw LoadError(fmt::format("Module {} is empty", lib.getName()));
 
 		return funcAddr(MIA_VERSION);
