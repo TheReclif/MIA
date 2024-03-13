@@ -53,7 +53,6 @@ try
 	}
 
 	std::vector<std::unique_ptr<mia::DynamicLibrary>> dynamicLibs;
-
 	dynamicLibs.reserve(modules.size());
  	for (const auto& x : modules)
 	{
@@ -83,22 +82,21 @@ try
 
 	for (std::size_t x = 0; x < dynamicLibs.size(); ++x)
 	{
-		const auto miaModule = mia::GeneratorModule::loadFromLibrary(*dynamicLibs[x]);
-		if (miaModule)
-		{
+		try {
+			const auto miaModule = mia::GeneratorModule::loadFromLibrary(*dynamicLibs[x]);
+			
+			if (!miaModule)
+				continue;
+			
 			app.registerModule(miaModule);
 		}
-		else
+		catch (const mia::VersionError& e)
 		{
-			const auto getVer = reinterpret_cast<mia::GeneratorModule::GetVersionFunc>(dynamicLibs[x]->getFuncAddress("mia_getVersion"));
-			if (getVer)
-			{
-				spdlog::error("Version mismatch for module {}, current MIA version is {}, module version is {}", modules[x], MIA_VERSION, getVer());
-			}
-			else
-			{
-				spdlog::error("Version mismatch for module {}, current MIA version is {}, unable to get module version (corrupted module?)", modules[x], MIA_VERSION);
-			}
+			spdlog::error("Version mismatch for module {0}, {1}", modules[x], e.what());
+		}
+		catch (const mia::LoadError& e)
+		{
+			spdlog::error(e.what());
 		}
 	}
 

@@ -138,12 +138,23 @@ namespace mia
 
 	GeneratorModule* GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
 	{
+		const auto getVer = reinterpret_cast<GetVersionFunc>(lib.getFuncAddress("mia_getVersion"));
+
+		const char* ver = getVer ? getVer() : nullptr;
+
+		if (!ver || std::string(MIA_VERSION) != ver)
+			throw VersionError(ver);
+
 		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
+		
 		if (funcAddr)
-		{
-			return funcAddr(MIA_VERSION);
-		}
-		spdlog::error("Unable to find export function in module {}", lib.getName());
-		return nullptr;
+			throw LoadError(fmt::format("Unable to find export function in module {}", lib.getName()));
+
+		const auto res = funcAddr(MIA_VERSION);
+
+		if (res == nullptr)
+			throw LoadError(fmt::format("Module {} is empty", lib.getName()));
+
+		return funcAddr(MIA_VERSION);
 	}
 }
