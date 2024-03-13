@@ -36,16 +36,14 @@ template<> inline mia::CppStandard to_enum(const std::string& str) {
 	return it->second;
 };
 
-template<> inline std::vector<mia::CppStandard> enum_to_list() {
-	return {
-		mia::CppStandard::Cpp98,
-		mia::CppStandard::Cpp03,
-		mia::CppStandard::Cpp11,
-		mia::CppStandard::Cpp14,
-		mia::CppStandard::Cpp1z,
-		mia::CppStandard::Cpp17,
-		mia::CppStandard::Cpp2a,
-		mia::CppStandard::Cpp20
-	};
+template<> constexpr const std::array<mia::CppStandard, 8> enum_values<mia::CppStandard> = {
+	mia::CppStandard::Cpp98,
+	mia::CppStandard::Cpp03,
+	mia::CppStandard::Cpp11,
+	mia::CppStandard::Cpp14,
+	mia::CppStandard::Cpp1z,
+	mia::CppStandard::Cpp17,
+	mia::CppStandard::Cpp2a,
+	mia::CppStandard::Cpp20
 };
 #endif

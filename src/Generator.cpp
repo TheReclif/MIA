@@ -18,7 +18,7 @@ namespace mia
 {
 	void GeneratorConfig::registerOptions(argumentum::ParameterConfig& params)
 	{
-		auto standards = enum_to_list<CppStandard>();
+		auto standards = enum_values<CppStandard>;
 		std::vector<std::string> standardNames;
 		for (const auto& s : standards)
 			standardNames.emplace_back(to_string(s));

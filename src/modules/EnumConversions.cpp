@@ -32,14 +32,12 @@ template<> inline {0} to_enum(const std::string& str) {{
 static const auto to_enum_item_pattern = "\t\t{{ {}, {} }}";
 
 static const auto to_list_main_pattern = R"TXT(
-template<> inline std::vector<{0}> enum_to_list() {{
-	return {{
-{1}
-	}};
+template<> constexpr const std::array<{0}, {1}> enum_values<mia::CppStandard> = {{
+{2}
 }};
 )TXT";
 
-static const auto to_list_item_pattern = "\t\t{0}";
+static const auto to_list_item_pattern = "\t{0}";
 
 namespace mia::modules
 {
@@ -104,6 +102,7 @@ namespace mia::modules
 				outputStream << fmt::format(
 					to_list_main_pattern,
 					eName,
+					enumOptions.size(),
 					text::implode(text::process<EnumOption>(
 						enumOptions,
 						[](const EnumOption& option) {
