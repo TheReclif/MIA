@@ -46,10 +46,7 @@ namespace mia
 	class CORE_EXPORT VersionError: public std::runtime_error
 	{
 	public:
-		VersionError(const char* version) : std::runtime_error(
-			fmt::format("MIA version is {0}, module version is ", MIA_VERSION) +
-			(version == nullptr ? "null(module may be corrupted)" : fmt::format("module version is {0}", version)))
-		{ }
+		VersionError(const char* version);
 	};
 
 	class CORE_EXPORT LoadError : public std::runtime_error

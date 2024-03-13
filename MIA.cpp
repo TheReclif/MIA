@@ -86,17 +86,19 @@ try
 			const auto miaModule = mia::GeneratorModule::loadFromLibrary(*dynamicLibs[x]);
 			
 			if (!miaModule)
-				continue;
+				return 1;
 			
 			app.registerModule(miaModule);
 		}
 		catch (const mia::VersionError& e)
 		{
 			spdlog::error("Version mismatch for module {0}, {1}", modules[x], e.what());
+			return 1;
 		}
 		catch (const mia::LoadError& e)
 		{
 			spdlog::error(e.what());
+			return 1;
 		}
 	}
 
@@ -112,6 +114,6 @@ try
 }
 catch (std::exception e)
 {
-	spdlog::error("Unexpected error");
+	spdlog::error("Unexpected error: {0}", e.what());
 	return 1;
 }

@@ -136,6 +136,11 @@ namespace mia
 		return it->second;
 	}
 
+	VersionError::VersionError(const char* version): std::runtime_error(
+		fmt::format("MIA version is {0}, module version is ", MIA_VERSION) +
+		(version == nullptr ? "null(module may be corrupted)" : fmt::format("module version is {0}", version)))
+	{ }
+
 	GeneratorModule* GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
 	{
 		const auto getVer = reinterpret_cast<GetVersionFunc>(lib.getFuncAddress("mia_getVersion"));
