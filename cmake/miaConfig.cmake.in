@@ -10,6 +10,8 @@ find_dependency(Threads REQUIRED)
 
 check_required_components("@PROJECT_NAME@")
 
+option(mia_verbose "Enables verbose logging for MIA" OFF)
+
 #set(mia_executable_path ${CMAKE_CURRENT_LIST_DIR}/../../../bin/mia)
 find_program(mia_executable_path mia PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../bin)
 
@@ -34,24 +36,28 @@ function(miagen target)
 
 	set(mia_output_pattern "${CMAKE_CURRENT_BINARY_DIR}/{}.mia.hpp")
 
+	if (mia_verbose)
+		set(mia_verbose_flag "-v")
+	else()
+		set(mia_verbose_flag "")
+	endif()
+
 	foreach(mia_header_file IN LISTS mia_fetched_sources)
 		get_filename_component(mia_file_name ${mia_header_file} NAME_WE)
 		set(mia_input_file "${mia_fetched_sources_dir}/${mia_header_file}")
 		set(mia_output_file "${CMAKE_CURRENT_BINARY_DIR}/${mia_file_name}.mia.hpp")
 		
+		set(mia_target_command "${mia_executable_path} --std ${mia_cxx_standard} -f ${mia_input_file} -o ${mia_output_pattern} -i $<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES> ${mia_verbose_flag}")
+		
 		if (PARSED_ARGS_MODULES)
-			add_custom_command(OUTPUT ${mia_output_file}
-				COMMAND ${mia_executable_path} --std ${mia_cxx_standard} -f ${mia_input_file} -o ${mia_output_pattern} -m "${PARSED_ARGS_MODULES}" -i "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>"
-				COMMAND_EXPAND_LISTS
-				DEPENDS ${mia_input_file}
-			)
-		else()
-			add_custom_command(OUTPUT ${mia_output_file}
-				COMMAND ${mia_executable_path} --std ${mia_cxx_standard} -f ${mia_input_file} -o ${mia_output_pattern} -i "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>"
-				COMMAND_EXPAND_LISTS
-				DEPENDS ${mia_input_file}
-			)
+			set(mia_target_command "${mia_target_command} -m ${PARSED_ARGS_MODULES}")
 		endif()
+
+		add_custom_command(OUTPUT ${mia_output_file}
+			COMMAND ${mia_target_command}
+			COMMAND_EXPAND_LISTS
+			DEPENDS ${mia_input_file}
+		)
 		
 		set(mia_output_file_target "mia_output_header_${target}_${mia_file_name}")
 		add_custom_target(${mia_output_file_target} ALL DEPENDS ${mia_output_file})

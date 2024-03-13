@@ -4,12 +4,12 @@
 #include <argumentum/argparse.h>
 #include <spdlog/spdlog.h>
 
-#include <cppast/cpp_entity_kind.hpp>        // for the cpp_entity_kind definition
-#include <cppast/cpp_forward_declarable.hpp> // for is_definition()
-#include <cppast/cpp_namespace.hpp>          // for cpp_namespace
-#include <cppast/libclang_parser.hpp> // for libclang_parser, libclang_compile_config, cpp_entity,...
-#include <cppast/visitor.hpp>         // for visit()
-#include <cppast/cpp_enum.hpp> // cpp_enum
+#include <cppast/cpp_entity_kind.hpp>			// for the cpp_entity_kind definition
+#include <cppast/cpp_forward_declarable.hpp>	// for is_definition()
+#include <cppast/cpp_namespace.hpp>				// for cpp_namespace
+#include <cppast/libclang_parser.hpp>			// for libclang_parser, libclang_compile_config, cpp_entity,...
+#include <cppast/visitor.hpp>					// for visit()
+#include <cppast/cpp_enum.hpp>					// cpp_enum
 
 #include <deque>
 #include <thread>
@@ -24,8 +24,16 @@
 
 namespace mia
 {
-	mia::App::App(std::vector<std::string>&& files, std::vector<std::string>&& includes, std::string&& outputPattern, const GeneratorConfig& config)
-		: filesToProcess(std::move(files)), includeDirs(std::move(includes)), pattern(std::move(outputPattern)), config(config)
+	mia::App::App(
+		std::vector<std::string>&& files,
+		std::vector<std::string>&& includes,
+		std::string&& outputPattern,
+		const GeneratorConfig& config
+	):
+		filesToProcess(std::move(files)),
+		includeDirs(std::move(includes)),
+		pattern(std::move(outputPattern)),
+		config(config)
 	{}
 
 	bool mia::App::process()
@@ -132,18 +140,22 @@ namespace mia
 			
 			const auto path = std::filesystem::path(filePath);
 
+			if (!std::filesystem::exists(path))
+			{
+				spdlog::error("Input file not found: {}", filePath);
+				throw std::exception("File not found");
+			}
+
 			const auto fileStem = path.stem().string();
 			const auto fileName = path.filename().string();
 			
 			std::ostringstream outStream;
 
-			if (!config.dry)
-				outStream << fmt::format(headerStartPattern, text::toUpper(fileStem), fileName);
+			outStream << fmt::format(headerStartPattern, text::toUpper(fileStem), fileName);
 
 			generator.generate(outStream, filePath);
 
-			if (!config.dry)
-				outStream << headerEnd;
+			outStream << headerEnd;
 
 			output.emplace_back(File{ path, outStream.str() });
 		}
@@ -157,19 +169,29 @@ namespace mia
 	{
 		for (const auto& file : files)
 		{
-			std::ofstream outFile;
-
 			const auto& path = file.path;
 			const auto fileStem = path.stem().string();
 			const auto fileName = path.filename().string();
 
-			if (!config.dry)
-				outFile.open(fmt::format(pattern, fileStem));
-
-			std::ostream& outStream = outFile ? outFile : std::cout;
+			const auto targetPath = fmt::format(pattern, fileStem);
 
 			if (!config.dry)
-				outStream << file.content;
+			{
+				if (config.textOutput)
+				{
+					spdlog::info("--{}--", targetPath);
+					spdlog::info("{}", file.content);
+					spdlog::info("--end--");
+				}
+				else
+				{
+					std::ofstream outFile{ targetPath };
+					outFile << file.content;
+				}
+			}
+
+			if (config.verbose)
+				spdlog::info("Generated {}", targetPath);
 		}
 	}
 }

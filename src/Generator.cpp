@@ -1,4 +1,3 @@
-#include "Generator.hpp"
 #include <Generator.hpp>
 #include <optional>
 #include <filesystem>
@@ -23,13 +22,13 @@ namespace mia
 			.add_parameter(threadCount, "--threads", "-t")
 			.metavar("<threads>")
 			.help("How many threads to start")
-			.required(false).absent(-1).nargs(1);
+			.required(false).absent(0).nargs(1);
 		params
 			.add_parameter(cppStandard, "--std")
 			.metavar("<std>")
 			.help("C++ standard to compile against")
 			.required(false).absent(CppStandard::Cpp11).nargs(1)
-			.choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" })
+			.choices({ "c++98", "c++03", "c++11", "c++14", "c++1z", "c++17", "c++2a", "c++20" }) //TODO: get from enum
 			.action([](auto& target, const std::string& value)
 				{
 					target = to_enum<CppStandard>(value);
@@ -38,9 +37,25 @@ namespace mia
 			.add_parameter(dry, "--dry-run", "-d")
 			.help("Program in dry run will not modify any file and only print information about what it would do.")
 			.required(false).absent(false);
+		params
+			.add_parameter(verbose, "--verbose", "-v")
+			.help("Adds verbose logging.")
+			.required(false).absent(false);
+		params
+			.add_parameter(textOutput, "--text", "-$")
+			.help("Output content of files to stdout instead of files. Segments begin with --<path>-- and end with --end--.")
+			.required(false).absent(false);
+	}
+	void GeneratorConfig::log() const
+	{
+		spdlog::info("Verbose: {}", verbose);
+		spdlog::info("Dry: {}", dry);
+		spdlog::info("Text: {}", textOutput);
+		spdlog::info("Cpp: {}", to_string(cppStandard));
+		spdlog::info("Threads: {}", threadCount);
 	}
 
-	Generator::Generator(const GeneratorConfig& config, const std::vector<std::string>& includeDirs) : dry(config.dry)
+	Generator::Generator(const GeneratorConfig& config, const std::vector<std::string>& includeDirs) : dry(config.dry), verbose(config.verbose)
 	{
 		const auto compileStandard = convertStandards(config.cppStandard);
 		if (!compileStandard)
@@ -77,7 +92,6 @@ namespace mia
 	void Generator::generate(std::ostream& outputStream, const std::string& targetFile)
 	{
 		cppast::cpp_entity_index id;
-		//TODO: check if file exists
 		try
 		{
 			auto cppFile = parser.parse(id, targetFile, compileConfig);
@@ -86,14 +100,17 @@ namespace mia
 				spdlog::error("Unable to parse {}", targetFile);
 				throw std::exception("Parse error");
 			}
-			spdlog::info("{} parsed", targetFile);
+
+			if (verbose)
+				spdlog::info("{} parsed", targetFile);
 
 			for (auto module : modules)
 			{
 				module->extractInfo(outputStream, *cppFile);
 			}
 
-			spdlog::info("Info from {} extracted", targetFile);
+			if (verbose)
+				spdlog::info("Info from {} extracted", targetFile);
 		}
 		catch (const std::exception& e)
 		{

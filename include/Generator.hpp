@@ -31,11 +31,14 @@ namespace mia
 	class CORE_EXPORT GeneratorConfig
 	{
 	public:
-		int threadCount = -1;
+		int threadCount = 0;
 		CppStandard cppStandard = CppStandard::Cpp11;
 		bool dry = false;
+		bool verbose = false;
+		bool textOutput = false;
 
 		void registerOptions(argumentum::ParameterConfig& params);
+		void log() const;
 	};
 
 	class CORE_EXPORT GeneratorModule
@@ -83,7 +86,8 @@ namespace mia
 		std::vector<GeneratorModule*> modules;
 		cppast::libclang_parser parser;
 
-		bool dry;
+		const bool dry;
+		const bool verbose;
 	};
 }
 
