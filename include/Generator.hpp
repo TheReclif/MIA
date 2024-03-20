@@ -14,9 +14,11 @@
 #include <Standard.hpp>
 
 #ifdef WIN32
-#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule() { static name instance; return &instance; }
+#define MiaExportModule(name) extern "C" inline __declspec(dllexport) mia::GeneratorModule* mia_exportModule(const char* ver) { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; } \
+extern "C" inline __declspec(dllexport) const char* mia_getVersion() { return MIA_VERSION; }
 #else
-#define MiaExportModule(name) extern "C" inline mia::GeneratorModule* mia_exportModule() { static name instance; return &instance; }
+#define MiaExportModule(name) extern "C" inline mia::GeneratorModule* mia_exportModule() { static name instance; return std::string_view(ver) == std::string_view(MIA_VERSION) ? &instance : nullptr; }
+extern "C" inline const char* mia_getVersion() { return MIA_VERSION; }
 #endif
 
 namespace argumentum
@@ -41,33 +43,30 @@ namespace mia
 		void log() const;
 	};
 
+	class CORE_EXPORT VersionError: public std::runtime_error
+	{
+	public:
+		VersionError(const char* version);
+	};
+
+	class CORE_EXPORT LoadError : public std::runtime_error
+	{
+	public:
+		using std::runtime_error::runtime_error;
+	};
+
 	class CORE_EXPORT GeneratorModule
 	{
 	public:
 		using Ptr = std::shared_ptr<GeneratorModule>;
-		using CreateFunc = GeneratorModule*(*)();
+		using CreateFunc = GeneratorModule*(*)(const char*);
+		using GetVersionFunc = const char*(*)();
 
 		virtual ~GeneratorModule() = default;
 
 		virtual void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) = 0;
-		[[nodiscard]]
-		virtual const char* getVersion() const = 0;
 
 		static GeneratorModule* loadFromLibrary(const DynamicLibrary& lib);
-	};
-
-	class GeneratorModuleBase
-		: public GeneratorModule
-	{
-	public:
-		GeneratorModuleBase() = default;
-		~GeneratorModuleBase() override = default;
-
-		[[nodiscard]]
-		const char* getVersion() const override
-		{
-			return MIA_VERSION;
-		}
 	};
 
 	class CORE_EXPORT Generator

@@ -74,13 +74,9 @@ namespace mia
 	
 	void Generator::registerModule(GeneratorModule* module)
 	{
-		if (std::string_view(module->getVersion()) == MIA_VERSION)
+		if (module)
 		{
 			modules.emplace_back(module);
-		}
-		else
-		{
-			spdlog::error("Mismatching versions for module {}, module version is {}, but mia version is {}", "PLACEHOLDER_UNIMPLEMENTED", module->getVersion(), MIA_VERSION);
 		}
 	}
 
@@ -142,14 +138,30 @@ namespace mia
 		return it->second;
 	}
 
+	VersionError::VersionError(const char* version): std::runtime_error(
+		fmt::format("MIA version is {0}, module version is ", MIA_VERSION) +
+		(version == nullptr ? "null(module may be corrupted)" : fmt::format("module version is {0}", version)))
+	{ }
+
 	GeneratorModule* GeneratorModule::loadFromLibrary(const DynamicLibrary& lib)
 	{
+		const auto getVer = reinterpret_cast<GetVersionFunc>(lib.getFuncAddress("mia_getVersion"));
+
+		const char* ver = getVer ? getVer() : nullptr;
+
+		if (!ver || std::string_view(MIA_VERSION) != ver)
+			throw VersionError(ver);
+
 		const auto funcAddr = reinterpret_cast<CreateFunc>(lib.getFuncAddress("mia_exportModule"));
-		if (funcAddr)
-		{
-			return funcAddr();
-		}
-		spdlog::error("Unable to find export function in module {}", lib.getName());
-		return nullptr;
+		
+		if (!funcAddr)
+			throw LoadError(fmt::format("Unable to find export function in module {}", lib.getName()));
+
+		auto res = funcAddr(MIA_VERSION);
+
+		if (!res)
+			throw LoadError(fmt::format("Module {} is empty", lib.getName()));
+
+		return funcAddr(MIA_VERSION);
 	}
 }

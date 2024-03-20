@@ -3,7 +3,7 @@
 #include <cppast/visitor.hpp>
 
 class TestModule
-	: public mia::GeneratorModuleBase
+	: public mia::GeneratorModule
 {
 	void extractInfo(std::ostream& outputStream, cppast::cpp_file& source) override
 	{
