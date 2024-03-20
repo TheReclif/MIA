@@ -6,7 +6,6 @@
 #include <MiaUtils.hpp>
 #include <Standard.hpp>
 
-
 inline const char* to_string(const mia::CppStandard e) {
 	switch (e) {
 		case mia::CppStandard::Cpp98: return "c++98";
@@ -35,5 +34,16 @@ template<> inline mia::CppStandard to_enum(const std::string& str) {
 	if (it == mapping.end())
 		throw std::invalid_argument("Cannot convert given string to enum.");
 	return it->second;
+};
+
+template<> constexpr const std::array<mia::CppStandard, 8> enum_values<mia::CppStandard> = {
+	mia::CppStandard::Cpp98,
+	mia::CppStandard::Cpp03,
+	mia::CppStandard::Cpp11,
+	mia::CppStandard::Cpp14,
+	mia::CppStandard::Cpp1z,
+	mia::CppStandard::Cpp17,
+	mia::CppStandard::Cpp2a,
+	mia::CppStandard::Cpp20
 };
 #endif

@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
+#include <array>
 
 #include <Type.hpp>
 
@@ -90,6 +91,8 @@ template<typename T> T to_enum(const std::string&)
 {
 	throw std::logic_error("Enum conversion for given type not implemented.");
 }
+
+template<typename T> constexpr const std::array<T, 0> enum_values = {};
 
 template<class T> void serialize(std::ostream& out, const T& arg)
 {
